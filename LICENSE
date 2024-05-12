@@ -1,6 +1,6 @@
-MIT License
+Go Horse Race License based on the MIT License
 
-Copyright (c) 2024 Zedrik Cayne
+Copyright (c) 2024 Andrew Grabish
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,32 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Any use of this project to do evil is prohibited. Definitions of evil
+include stuff like missile guidance systems, world dominance, coup efforts,
+pushing old folks down stairs, that kind of jazz.
+
+Seriously, don't.
+
+Any use of this project in the medical field or financial field is
+prohibited. The authors don't want to have that on their conscience
+when it inevitably fails and causes a pacemaker to freak out or through
+some odd freak of nature turns your portfolio into penny stocks.
+
+Seriously, don't.
+
+Any use of this project in a production environment is a bad idea.
+We won't stop you but the authors seriously doubt you will want to
+and assume zero responsibility for any costs incurred. Seriously
+we're putting this together on the weekends and evenings. See the
+above MIT Licence bit for the more legal-ese version of this paragraph.
+
+Seriously, don't.
+
+If you're making money using this software, good! Throw some the
+authors way. But see the comment above about not using this in
+production. There are real versions of this hastily put together
+software out there.
+
+That's it. Now go make something. (Or don't...I'm not your boss/
+responsible adult)
