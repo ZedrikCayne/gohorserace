@@ -38,13 +38,13 @@ shadowJar {
 }
 
 task generateLicense {
-    inputs.files("$projectDir/../LICENSE.txt","$projectDir/../ThirdPartyLicenses/*")
+    inputs.files("$projectDir/../LICENSE","$projectDir/../ThirdPartyLicenses/*")
     outputs.file("$projectDir/src/main/resources/LICENSE")
     doLast {
         def outputFile = new File("$projectDir/src/main/resources/LICENSE")
         outputFile.delete()
         outputFile.createNewFile();
-        outputFile.append( file("$projectDir/../LICENSE.txt").text)
+        outputFile.append( file("$projectDir/../LICENSE").text)
         fileTree("$projectDir/../ThirdPartyLicenses").forEach { file -> {
             outputFile.append("\n\n-----------\n\n")
             outputFile.append(file.text);
