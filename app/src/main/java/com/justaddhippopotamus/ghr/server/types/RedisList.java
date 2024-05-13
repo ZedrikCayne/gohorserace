@@ -187,7 +187,7 @@ public class RedisList extends RedisType {
         if(realStart < 0) realStart = 0;
         if(realStop > len) realStop = len;
         if( realStart >= realStop ) return new ArrayList<>();
-        return value.subList(realStart,realStop);
+        return new ArrayList<>(value.subList(realStart,realStop));
     }
 
     public synchronized int remove(String what, int count) {
