@@ -37,6 +37,8 @@ public class RESPArrayScanner {
 
     public String command() { return commands.argAt(0); }
     public String subcommand() { return commands.argAt(1); }
+    public boolean commandIs(String what) { return commands.argAt(0).compareTo(what)==0; }
+    public boolean subcommandIs(String what) { return commands.argAt(1).compareTo(what)==0; }
     public void setCurrent(int currentIndex) {
         this.currentIndex = currentIndex;
     }

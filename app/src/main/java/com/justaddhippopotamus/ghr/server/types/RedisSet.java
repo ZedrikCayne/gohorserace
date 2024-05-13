@@ -31,6 +31,32 @@ public class RedisSet extends RedisType {
         return returnValue;
     }
 
+    public synchronized RedisSet diff(List<RedisSet> sets) {
+        return RedisType.atomicAllStatic(sets,RedisSet.class, all -> {
+            RedisSet returnValue = new RedisSet(this);
+            for (RedisSet redisSet : all) {
+                returnValue.value.removeAll(redisSet.value);
+                if (returnValue.value.isEmpty()) break;
+            }
+            return returnValue;
+        });
+    }
+    public synchronized RESPArray sismember(List<String> members) {
+        int len = members.size();
+        RESPArray returnValue = new RESPArray(len);
+        for(int i = 0; i < len; ++i ) {
+            returnValue.addInteger(value.contains(members.get(i))?1:0);
+        }
+        return returnValue;
+    }
+
+    public synchronized boolean contains(String member) {
+        return value.contains(member);
+    }
+
+    public synchronized int size() {
+        return value.size();
+    }
     public synchronized String pop() {
         Iterator<String> iter = value.iterator();
         if( iter.hasNext() ) {
@@ -61,6 +87,50 @@ public class RedisSet extends RedisType {
         return value.size();
     }
 
+    public synchronized int add(final RedisSet other) {
+        if( other == null ) return value.size();
+        synchronized (other) {
+            value.addAll(other.value);
+        }
+        return value.size();
+    }
+
+    public synchronized int add(String add) {
+        value.add(add);
+        return value.size();
+    }
+
+    public synchronized List<String> rand(int count) {
+        boolean distinct = count>0;
+        int myCount = distinct?count:-count;
+        int len = value.size();
+        if( len == 0 ) {
+            return new ArrayList<>();
+        }
+        Random r = new Random();
+        if( distinct ) {
+            if( myCount > len ) {
+                return new ArrayList<>(value);
+            } else {
+                boolean workDown = myCount > (len/2);
+                if( workDown ) myCount = len - myCount;
+                LinkedList<String> taken = new LinkedList<>();
+                LinkedList<String> take = new LinkedList<>(value);
+                for( int i = 0; i < myCount; ++i ) {
+                    taken.add(take.remove(r.nextInt(len-i)));
+                }
+                return workDown?take:taken;
+            }
+        } else {
+            List<String> full = new ArrayList<>(value);
+            List<String> taken = new ArrayList<>(myCount);
+            for( int i = 0; i < myCount; ++i ) {
+                taken.add(full.get(r.nextInt(len)));
+            }
+            return taken;
+        }
+    }
+
     public RedisSet(InputStream is) throws IOException {
         readFrom(is);
     }
@@ -88,6 +158,9 @@ public class RedisSet extends RedisType {
     @Override
     public void copyFrom(RedisType other) {
         super.copyFrom(other);
+        RedisSet set = (RedisSet)other;
+        //Sharing the values is okay since they are immutable.
+        value.addAll(set.value);
     }
     @Override
     public <T extends RedisType> T copy(Class<T> type) {

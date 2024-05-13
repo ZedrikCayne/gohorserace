@@ -12,7 +12,7 @@ import com.justaddhippopotamus.ghr.server.types.RedisString;
    directory be otherwise empty.
  */
 public class CommandSetCommand extends ICommandImplementation {
-    public void genericSet(Client client, String key, long order, RedisString value, long milliseconds, boolean NX, boolean XX, boolean GET, boolean KEEPTTL) {
+    public static void genericSet(Client client, String key, long order, RedisString value, long milliseconds, boolean NX, boolean XX, boolean GET, boolean KEEPTTL) {
         if (milliseconds != 0) {
             value.setExpireMilliseconds(milliseconds,false, false, false, false);
         }

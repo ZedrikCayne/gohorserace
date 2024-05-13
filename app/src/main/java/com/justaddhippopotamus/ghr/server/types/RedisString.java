@@ -290,7 +290,7 @@ public class RedisString extends RedisType {
         value = null;
     }
 
-    public static RedisString RedisStringLength(int size) {
+    public static RedisString redisStringLength(int size) {
         return new RedisString().ensureByteCapacity(size);
     }
 
@@ -414,7 +414,17 @@ public class RedisString extends RedisType {
         copyFrom(other);
     }
 
-    public RESPBulkString range(int start, int end) {
+    public synchronized int setrange(int offset, RedisString append) {
+        if( append.length() + offset > value.length ) {
+            byte [] newValue = new byte[ append.length() + offset ];
+            System.arraycopy(value,0, newValue, 0, value.length);
+            value = newValue;
+        }
+        System.arraycopy(append.value,0, value, offset, append.value.length);
+        return value.length;
+    }
+
+    public synchronized RESPBulkString range(int start, int end) {
         if( isInteger ) {
             value = String.valueOf(integerValue).getBytes(Server.CHARSET);
         }
@@ -481,7 +491,7 @@ public class RedisString extends RedisType {
 
     public synchronized RedisString not() {
         int len = value.length;
-        RedisString returnValue = RedisStringLength(len);
+        RedisString returnValue = redisStringLength(len);
         for( int i = 0; i < len; ++i ) {
             returnValue.value[i] = (byte)~value[i];
         }

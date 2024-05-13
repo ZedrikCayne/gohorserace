@@ -20,6 +20,7 @@ import java.util.Set;
 public class CommandSinterCommand extends ICommandImplementation {
     public static RedisSet genericCommand(WorkItem item) {
         RESPArrayScanner commands = item.scanner();
+        if( commands.commandIs("SINTERSTORE") ) commands.string();
         List<String> keys = commands.remainingElementsRequired(0);
         Client client = item.whoFor;
         List<RedisSet> allSets = client.getMainStorage().fetchROMany(keys,RedisSet.class);

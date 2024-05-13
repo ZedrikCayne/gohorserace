@@ -133,8 +133,8 @@ public class AppTest {
         RedisString rsFirstAndSecond = new RedisString(firstANDsecond);
         RedisString rsFirstOrSecond = new RedisString(firstORsecond);
 
-        RedisString rsBlankSlate = RedisString.RedisStringLength(5);
-        RedisString neverTouched = RedisString.RedisStringLength(5);
+        RedisString rsBlankSlate = RedisString.redisStringLength(5);
+        RedisString neverTouched = RedisString.redisStringLength(5);
 
         rsBlankSlate.or(rsFirst);
         assertTrue( rsBlankSlate.valuesSameUpToMinLength(rsFirst) );

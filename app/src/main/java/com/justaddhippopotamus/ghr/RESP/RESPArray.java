@@ -130,6 +130,7 @@ public class RESPArray extends IRESP {
     }
     public void addString(String s) { value.add( new RESPBulkString(s)); }
     public void addRedisString(RedisString s) { value.add( new RESPBulkString(s)); }
+    public void addInteger(int i) { value.add( new RESPInteger(i)); }
 
     public RESPArray(IRESPFactory factory, InputStream in) throws java.io.IOException {
         readFrom(in, factory);

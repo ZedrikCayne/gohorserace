@@ -1,6 +1,7 @@
 
 package com.justaddhippopotamus.ghr.server.commands.impl;
 
+import com.justaddhippopotamus.ghr.RESP.RESPArrayScanner;
 import com.justaddhippopotamus.ghr.server.ICommandImplementation;
 import com.justaddhippopotamus.ghr.server.Command;
 import com.justaddhippopotamus.ghr.server.WorkItem;
@@ -11,6 +12,13 @@ import com.justaddhippopotamus.ghr.server.WorkItem;
 public class CommandUnlinkCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
-        Command.BadDefaultCommandImplementation(item);
+        final RESPArrayScanner commands = item.scanner();
+        int returnValue = 0;
+        while( commands.hasNext() ) {
+            String key = commands.key();
+            if( item.getMainStorage().del(key) )
+                ++returnValue;
+        }
+        item.whoFor.queueInteger(returnValue,item.order);
     }
 }
