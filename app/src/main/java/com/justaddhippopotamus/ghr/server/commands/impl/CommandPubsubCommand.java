@@ -42,12 +42,16 @@ public class CommandPubsubCommand extends ICommandImplementation {
         RESPArrayScanner commands = item.scanner(true);
         switch( commands.subcommand() ) {
             case "CHANNELS":
+                channels(item,commands);
                 break;
             case "NUMPAT":
+                numpat(item,commands);
                 break;
             case "SHARDCHANNELS":
+                shardchannels(item,commands);
                 break;
             case "SHARDNUMSUB":
+                shardnumsub(item,commands);
                 break;
         }
 

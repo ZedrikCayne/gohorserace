@@ -27,7 +27,7 @@ public class RedisHash extends RedisType {
     public void readFrom(InputStream is) throws IOException {
         RESPArray ra = RESPArray.readFull(is);
         int len = ra.size();
-        value = new HashMap<>(len/2);
+        value = new LinkedHashMap<>(len/2);
         for( int i = 0; i < len; i += 2 ) {
             putRaw(ra.stringAt(i), ra.redisStringAt(i+1));
         }
@@ -105,7 +105,7 @@ public class RedisHash extends RedisType {
     }
 
     public RedisHash(RedisHash in) {
-        value = new HashMap<>(in.value.size());
+        value = new LinkedHashMap<>(in.value.size());
         in.value.forEach((k,v) -> value.put(k,new RedisString(v)));
     }
 
@@ -163,7 +163,7 @@ public class RedisHash extends RedisType {
     }
 
     public RedisHash() {
-        value = new HashMap<>();
+        value = new LinkedHashMap<>();
     }
 
     @Override

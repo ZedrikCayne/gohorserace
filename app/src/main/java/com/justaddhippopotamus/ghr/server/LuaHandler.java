@@ -25,8 +25,8 @@ public class LuaHandler {
         }
         public BlockingQueue<IRESP> myQueue = new LinkedBlockingQueue<>();
 
-        LuaClient(Socket clientSocket, Server server, int id, boolean authed) {
-            super(clientSocket, server, id, authed);
+        LuaClient(Socket clientSocket, Server server, int id, boolean authed, int storage) {
+            super(clientSocket, server, id, authed, storage);
         }
     }
 
@@ -177,7 +177,7 @@ public class LuaHandler {
     public LuaHandler( Client whoFor ) {
         globals = boxedGlobals();
         //globals = JsePlatform.standardGlobals();
-        luaClient = new LuaClient(null, whoFor.myServer, -1, whoFor.isAuthed());
+        luaClient = new LuaClient(null, whoFor.myServer, -1, whoFor.isAuthed(), 0);
         myRedis = new redis(luaClient);
         globals.load(myRedis);
         client = whoFor;

@@ -20,15 +20,15 @@ public class CommandCopyCommand extends ICommandImplementation {
         final RESPArrayScanner commands = item.scanner();
         String sourceKey = commands.key();
         String destinationKey = commands.key();
-        String destinationDb = null;
+        int destinationDb = -1;
         if( commands.argIs("DESTINATION") ) {
-            destinationDb = commands.string();
+            destinationDb = commands.takeInt();
         }
         boolean REPLACE = commands.argIs("REPLACE");
         commands.errorOnRemains();
         TypeStorage source = item.getMainStorage();
         TypeStorage destination;
-        if( destinationDb != null ) {
+        if( destinationDb != -1 ) {
             destination = item.whoFor.getStorage(destinationDb);
         } else {
             destination = source;

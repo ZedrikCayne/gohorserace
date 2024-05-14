@@ -11,6 +11,7 @@ import com.justaddhippopotamus.ghr.server.WorkItem;
 public class CommandSelectCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
-        Command.BadDefaultCommandImplementation(item);
+        item.whoFor.select(item.what.intAt(1));
+        item.whoFor.queueOK(item.order);
     }
 }

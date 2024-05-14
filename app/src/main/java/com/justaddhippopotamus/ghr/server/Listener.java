@@ -20,7 +20,7 @@ public class Listener extends GoDog {
 
                     clientSocket.setKeepAlive(true);
                     clientSocket.setSoLinger(true,0);
-                    newClient = new Client( clientSocket, myServer, clientid, myServer.password == null );
+                    newClient = new Client( clientSocket, myServer, clientid, myServer.password == null, 0 );
                     ++clientid;
                     myServer.addClient(newClient);
                     newClient.goDogGo();

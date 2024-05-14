@@ -1,6 +1,7 @@
 
 package com.justaddhippopotamus.ghr.server.commands.impl;
 
+import com.justaddhippopotamus.ghr.RESP.RESPArrayScanner;
 import com.justaddhippopotamus.ghr.server.ICommandImplementation;
 import com.justaddhippopotamus.ghr.server.Command;
 import com.justaddhippopotamus.ghr.server.WorkItem;
@@ -11,6 +12,8 @@ import com.justaddhippopotamus.ghr.server.WorkItem;
 public class CommandSwapdbCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
-        Command.BadDefaultCommandImplementation(item);
+        RESPArrayScanner commands = item.scanner();
+        item.getMainStorage().swapdb(commands.takeInt(),commands.takeInt());
+        item.whoFor.queueOK(item.order);
     }
 }

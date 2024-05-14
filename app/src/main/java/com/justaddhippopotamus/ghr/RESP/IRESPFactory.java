@@ -4,7 +4,14 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class IRESPFactory {
-    public IRESP getNext(InputStream in) throws java.io.IOException {
+    public int getNextRESPInteger(InputStream in) throws IOException {
+        IRESP i = getNext(in);
+        if( i instanceof RESPInteger ) {
+            return (int)((RESPInteger)i).value;
+        }
+        throw new RuntimeException("Next is not an integer.");
+    }
+    public IRESP getNext(InputStream in) throws IOException {
         int token = in.read();
         if( token == -1 )
             throwIOException("Ran out of bytes trying to read next token.");

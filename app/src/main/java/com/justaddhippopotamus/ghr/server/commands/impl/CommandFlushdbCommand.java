@@ -10,7 +10,7 @@ import com.justaddhippopotamus.ghr.server.WorkItem;
 public class CommandFlushdbCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
-        item.getMainStorage().flushAll();
+        item.getMainStorage().flush();
         item.whoFor.queueOK(item.order);
     }
 }

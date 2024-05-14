@@ -85,7 +85,7 @@ public class Server extends GoDog {
         RESPArrayScanner commands = item.scanner();
         Command c = commandTable.getOrDefault(commands.command(),null);
         if( c != null && c.implementation == null ) {
-            c = commandTable.getOrDefault(commands.subcommand(),null);
+            c = c.subcommands.getOrDefault(commands.subcommand(),null);
             if( c != null && c.implementation == null ) {
                 return null;
             }
@@ -202,13 +202,8 @@ public class Server extends GoDog {
 
     public LuaStorage luaStorage() { return luaStorage; }
     public ChannelManager channelManager() { return channels; }
-    private Map<String,TypeStorage> storages = new HashMap<>();
-
-    public TypeStorage getStorage(String db) {
-        if( !storages.containsKey(db) ) {
-            throw new RuntimeException("No DB named " + db + " available.");
-        }
-        return storages.get(db);
+    public TypeStorage getStorage(int db) {
+        return mainStorage.getStorage(db);
     }
 
     public static volatile boolean verbose = false;

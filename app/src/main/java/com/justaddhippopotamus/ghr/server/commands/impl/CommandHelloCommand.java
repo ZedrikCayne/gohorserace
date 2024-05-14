@@ -37,9 +37,9 @@ public class CommandHelloCommand extends ICommandImplementation {
             if( commands.argIs("SETNAME") ) {
                 String name = commands.string();
             }
+            item.whoFor.clientRESPVersion = rv;
         }
         commands.errorOnRemains();
-        item.whoFor.clientRESPVersion = rv;
         item.whoFor.queue(item.whoFor.helloResponse(),item.order);
     }
 }

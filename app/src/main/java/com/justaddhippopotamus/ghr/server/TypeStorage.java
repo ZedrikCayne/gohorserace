@@ -6,10 +6,7 @@ import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
 import com.justaddhippopotamus.ghr.RESP.RESPInteger;
 import com.justaddhippopotamus.ghr.server.types.*;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -18,7 +15,39 @@ import java.util.stream.Collectors;
 public class TypeStorage {
     private ConcurrentHashMap<String,RedisType> inMemoryBasic;
     private final String mainStorageFile;
+    private final ConcurrentHashMap<Integer,TypeStorage> storages = new ConcurrentHashMap<>();
+    private TypeStorage parent = null;
     private int initialSize;
+
+    public int touch(List<String> keys) {
+        int count = 0;
+        for(var s:keys) if(inMemoryBasic.containsKey(s))++count;
+        return count;
+    }
+    public synchronized int move(String key, int db) {
+        final TypeStorage destination = getStorage(db);
+        if( destination == this ) {
+            return 0;
+        }
+        RedisType source = inMemoryBasic.getOrDefault(key,null);
+        if( source == null ) {
+            return 0;
+        }
+        synchronized (destination) {
+            if( destination.keyExists( key ) ) {
+                return 0;
+            }
+            inMemoryBasic.remove(key);
+            destination.inMemoryBasic.put(key,source);
+        }
+        return 1;
+    }
+
+    TypeStorage getStorage(int which) {
+        if( parent != null ) return parent.getStorage(which);
+        if( which == 0 ) return this;
+        return storages.computeIfAbsent(which, k -> new TypeStorage(this) );
+    }
 
     //Raw dog store
     public synchronized void store(String key, RedisType value) {
@@ -151,6 +180,23 @@ public class TypeStorage {
         writeFile();
     }
 
+    private static void dbLoad(TypeStorage toLoad, IRESPFactory respFactory, RedisTypeFactory typeFactory, InputStream fis ) throws IOException {
+        toLoad.inMemoryBasic = new ConcurrentHashMap<>();
+        toLoad.initialSize = respFactory.getNextRESPInteger(fis);
+        toLoad.inMemoryBasic = new ConcurrentHashMap<>(toLoad.initialSize);
+        for( int i = 0; i < toLoad.initialSize; ++i ) {
+            RESPBulkString bs = (RESPBulkString)respFactory.getNext(fis);
+            if( bs == null ) {
+                throw new RuntimeException("Was expecting a Bulk String at element " + i );
+            }
+            RedisType rt = typeFactory.from(fis);
+            if( rt == null ) {
+                throw new RuntimeException("Failed to grab a proper redis type from the stream at element " + i);
+            }
+            toLoad.inMemoryBasic.put(bs.toString(),rt);
+        }
+    }
+
     private void loadFile() {
         if( mainStorageFile == null ) {
             System.out.println("DB not read, running in memory only mode.");
@@ -165,23 +211,12 @@ public class TypeStorage {
                 throw new RuntimeException("DB not a RESP file.");
             IRESPFactory respFactory = IRESPFactory.getDefault();
             RedisTypeFactory typeFactory = RedisTypeFactory.getDefault();
-            IRESP in = respFactory.getNext(fis);
-            if( in instanceof RESPInteger ) {
-                initialSize = (int)(((RESPInteger)in).value);
-                inMemoryBasic = new ConcurrentHashMap<>(initialSize);
-            } else {
-                throw new RuntimeException("Bad type in RESP file. Should be an integer.");
-            }
-            for( int i = 0; i < initialSize; ++i ) {
-                RESPBulkString bs = (RESPBulkString)respFactory.getNext(fis);
-                if( bs == null ) {
-                    throw new RuntimeException("Was expecting a Bulk String at element " + i );
-                }
-                RedisType rt = typeFactory.from(fis);
-                if( rt == null ) {
-                    throw new RuntimeException("Failed to grab a proper redis type from the stream at element " + i);
-                }
-                inMemoryBasic.put(bs.toString(),rt);
+            //Load the first database.
+            dbLoad(this,respFactory,typeFactory,fis);
+            while( fis.available() > 0 ) {
+                int newDbIndex = respFactory.getNextRESPInteger(fis);
+                TypeStorage newDb = getStorage(newDbIndex);
+                dbLoad( newDb, respFactory, typeFactory, fis);
             }
             fis.close();
         } catch (FileNotFoundException e) {
@@ -194,6 +229,16 @@ public class TypeStorage {
         System.out.println("Done reading db");
     }
 
+    private void writeTo(OutputStream fos) throws IOException {
+        RESPInteger in = new RESPInteger(inMemoryBasic.size());
+        in.publishTo(fos);
+        for( String key : inMemoryBasic.keySet() ) {
+            RESPBulkString bs = new RESPBulkString(key);
+            bs.publishTo(fos);
+            inMemoryBasic.get(key).writeTo(fos);
+        }
+    }
+
     private void writeFile() {
         if( mainStorageFile == null ) {
             System.out.println("Not saving the DB. Memory only requested.");
@@ -203,13 +248,12 @@ public class TypeStorage {
             FileOutputStream fos = new FileOutputStream(mainStorageFile);
             fos.write( 'R' ); fos.write( 'E' ); fos.write( 'S' );
             fos.write( 'P' ); fos.write( 13 ); fos.write( 10 );
-            RESPInteger i = new RESPInteger(inMemoryBasic.size());
-            i.publishTo(fos);
-            for( String key : inMemoryBasic.keySet() ) {
-                RESPBulkString bs = new RESPBulkString(key);
-                bs.publishTo(fos);
-                inMemoryBasic.get(key).writeTo(fos);
+            writeTo(fos);
+            for( Integer i : storages.keySet() ) {
+                new RESPInteger(i).publishTo(fos);
+                storages.get(i).writeTo(fos);
             }
+
             fos.close();
         } catch(FileNotFoundException e) {
             System.out.println("Could not write to the output db..about to lose some stuff.");
@@ -222,6 +266,13 @@ public class TypeStorage {
         this.initialSize = initialSize;
         this.mainStorageFile = mainStorageFile;
         loadFile();
+    }
+
+    public TypeStorage(TypeStorage parent) {
+        this.mainStorageFile = null;
+        this.initialSize = 1024;
+        this.parent = parent;
+        this.inMemoryBasic = new ConcurrentHashMap<>(1024);
     }
 
     private synchronized Set<String> getKeySetCopy() {
@@ -280,7 +331,24 @@ public class TypeStorage {
     }
 
     public synchronized void flushAll() {
+        if( parent != null ) parent.flushAll();
+        else {
+            flush();
+            for(var v : storages.values()) v.flush();
+        }
+    }
+    public synchronized void flush() {
         inMemoryBasic = new ConcurrentHashMap<>();
+    }
+
+    public synchronized void swapdb(int a, int b) {
+        final TypeStorage ta = storages.get(a);
+        final TypeStorage tb = storages.get(b);
+        synchronized (tb) {
+            var temp = ta.inMemoryBasic;
+            ta.inMemoryBasic = tb.inMemoryBasic;
+            tb.inMemoryBasic = temp;
+        }
     }
 
     public synchronized int size() {

@@ -105,17 +105,19 @@ public class Client extends GoDog {
     }
     int id;
     public List<RESPArray> queuedStuff = new LinkedList<>();
-    public Client() {
+    public Client(TypeStorage s) {
         authed = false;
         mySocket = null;
         myServer = null;
         id = -1;
+        mainStorage = s;
     }
-    public Client(Socket clientSocket, Server server, int id, boolean authed ) {
+    public Client(Socket clientSocket, Server server, int id, boolean authed, int storage) {
         mySocket = clientSocket;
         myServer = server;
         this.id = id;
         this.authed = authed;
+        select(storage);
     }
     @Override
     public void run() {
@@ -265,6 +267,7 @@ public class Client extends GoDog {
         myWriter.reset();
         //Ditch everything. This stuff will try to queue but the order numbers
         //will all be higher than 1.
+        select(0);
         unsubscribeAll();
         unsubscribeAllPatterns();
         discardMulti();
@@ -327,7 +330,7 @@ public class Client extends GoDog {
         multiMode = false;
         multiExecuting = false;
         multiModeError = false;
-        queuedStuff = new ArrayList<>();
+        queuedStuff = new LinkedList<>();
         return previous;
     }
 
@@ -344,7 +347,7 @@ public class Client extends GoDog {
         boolean previous = multiMode;
         multiMode = false;
         multiExecuting = false;
-        queuedStuff = new ArrayList<>();
+        queuedStuff = new LinkedList<>();
         queue(multiReply,order);
         multiReply = new RESPArray();
         return previous;
@@ -397,6 +400,10 @@ public class Client extends GoDog {
         return values;
     }
 
+    public void select(int storage) {
+        mainStorage = myServer.getStorage(storage);
+    }
+
     public void queueSimpleString(String simpleString, long order) {
         queue(new RESPSimpleString(simpleString),order);
     }
@@ -428,6 +435,7 @@ public class Client extends GoDog {
     }
     private long order = 1;
     protected Server myServer;
+    protected TypeStorage mainStorage;
     private Socket mySocket;
     private boolean authed = false;
     public boolean isAuthed() { return authed; }
@@ -495,9 +503,9 @@ public class Client extends GoDog {
         queue(new RESPArray(set),order);
     }
     public TypeStorage getMainStorage() {
-        return myServer.mainStorage;
+        return mainStorage;
     }
-    public TypeStorage getStorage(String destinationDb) {
+    public TypeStorage getStorage(int destinationDb) {
         return myServer.getStorage(destinationDb);
     }
 }
