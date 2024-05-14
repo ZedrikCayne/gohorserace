@@ -16,7 +16,6 @@ public class RESPArray extends IRESP {
         out.write(prefix);
         if( value == null ) {
             writeTerminatedInteger(-1, out);
-            writeCRLF(out);
         } else {
             writeTerminatedInteger(value.size(), out);
             for( IRESP resp : value ) {
@@ -84,6 +83,10 @@ public class RESPArray extends IRESP {
     public RESPArray(Collection<String> collection) {
         value = new ArrayList<>(collection.size());
         collection.forEach(c -> value.add(new RESPBulkString(c)));
+    }
+
+    public RESPArray(String...what) {
+        value = Arrays.stream(what).map(RESPBulkString::new).collect(Collectors.toList());
     }
 
     public static RESPArray RESPArrayWithNulls(Collection<String> collection, RESPVersion v) {

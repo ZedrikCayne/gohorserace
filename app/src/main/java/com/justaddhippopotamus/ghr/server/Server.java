@@ -45,6 +45,10 @@ public class Server extends GoDog {
     public String dbFile = null;
     public int port = 0;
     public String password = null;
+
+    public boolean hasPassword() {
+        return password != null;
+    }
     public int startingExecutors = 5;
 
     public boolean passwordValid(String username, String password) {

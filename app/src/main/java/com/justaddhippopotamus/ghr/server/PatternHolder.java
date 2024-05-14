@@ -10,6 +10,7 @@ import java.util.Set;
 
 public class PatternHolder {
     String pattern;
+    RESPBulkString bulkPattern;
     PathMatcher matcher;
     Set<Client> clients;
     Set<PubSubChannel> channels;
@@ -26,10 +27,12 @@ public class PatternHolder {
 
     public synchronized void addClient(Client c) {
         clients.add(c);
+        c.queuePubSubSubscribe(bulkPattern,true);
     }
 
     public synchronized void removeClient(Client c) {
         clients.remove(c);
+        c.queuePubSubUnsubscribe(bulkPattern,true);
     }
 
     public synchronized void broadcast (RESPBulkString channel, RESPBulkString message) {
@@ -42,6 +45,7 @@ public class PatternHolder {
 
     public PatternHolder(String pattern) {
         this.pattern = pattern;
+        bulkPattern = new RESPBulkString(pattern);
         matcher = Utils.forGlob(pattern);
         clients = new HashSet<>();
         channels = new HashSet<>();

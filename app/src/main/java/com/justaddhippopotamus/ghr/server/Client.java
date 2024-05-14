@@ -13,6 +13,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class Client extends GoDog {
     private static class StuffToSend implements Comparable<StuffToSend> {
@@ -34,6 +35,7 @@ public class Client extends GoDog {
             this.myClient = myClient;
         }
         long orderNext = 1;
+        private boolean resetting = false;
         @Override
         public void run() {
             super.run();
@@ -44,15 +46,30 @@ public class Client extends GoDog {
             }
             while( running && myStream != null && !myClient.stopRequested ) {
                 try {
+                    if( resetting ) {
+                        List<StuffToSend> drainBoard = new ArrayList<>();
+                        myClient.stuffToSend.drainTo(drainBoard);
+                        drainBoard = drainBoard.stream().filter(x -> x.order == 1).collect(Collectors.toList());
+                        if( !drainBoard.isEmpty() ) {
+                            try {
+                                resetting = false;
+                                myClient.stuffToSend.put(drainBoard.get(0));
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }
+                    }
                     StuffToSend nextToSend = myClient.stuffToSend.take();
-                    if (nextToSend.order == 0 || nextToSend.order == orderNext) {
+                    if (!resetting && (nextToSend.order == 0 || nextToSend.order == orderNext) ) {
                         if( Server.verbose )
                             System.out.println(myClient.hashCode() + ": " + nextToSend.theData.prettyString());
                         nextToSend.theData.publishTo(myStream);
                         if (nextToSend.order == orderNext)
                             ++orderNext;
                     } else {
-                        myClient.stuffToSend.add(nextToSend);
+                        //While we're resetting...eat everything but #1
+                        if( !resetting || nextToSend.order == 1 )
+                            myClient.stuffToSend.add(nextToSend);
                     }
                 }catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -61,6 +78,11 @@ public class Client extends GoDog {
                 }
             }
             mainLoopCompleted();
+        }
+
+        public void reset() {
+            resetting = true;
+            orderNext = 1;
         }
 
         public boolean stop() {
@@ -139,7 +161,8 @@ public class Client extends GoDog {
 
 
                 if( rarray != null ) {
-                    if( multiMode && rarray.argAt(0).compareTo("EXEC") != 0 ) {
+                    RESPArrayScanner commands = new RESPArrayScanner(rarray);
+                    if( multiMode && !commands.commandIs("EXEC", "DISCARD", "RESET" ) ) {
                         queuedStuff.add(rarray);
                         queue(QUEUED,order);
                     }
@@ -203,6 +226,8 @@ public class Client extends GoDog {
         return wasRunning;
     }
 
+    private static final RESPBulkString PSUBSCRIBE = new RESPBulkString("psubscribe");
+    private static final RESPBulkString PUNSUBSCRIBE = new RESPBulkString("punsubscribe");
     private static final RESPBulkString SUBSCRIBE = new RESPBulkString("subscribe");
     private static final RESPBulkString UNSUBSCRIBE = new RESPBulkString("unsubscribe");
     private static final RESPBulkString MESSAGE = new RESPBulkString("message");
@@ -213,33 +238,58 @@ public class Client extends GoDog {
         return false;
     }
 
-    public void queuePubSubSubscribe(RESPBulkString channel) {
+    public void queuePubSubSubscribe(RESPBulkString channel,boolean psub) {
         RESPPush respPush = new RESPPush(clientRESPVersion== IRESP.RESPVersion.RESP3,
-                SUBSCRIBE,channel,new RESPInteger(channelsISubscribeTo.size()));
+                psub?PSUBSCRIBE:SUBSCRIBE,channel,new RESPInteger(psub?patternsISubscribeTo.size():channelsISubscribeTo.size()));
         queue(respPush,0);
     }
 
-    public void queuePubSubUnsubscribe(RESPBulkString channel) {
+    public void queuePubSubUnsubscribe(RESPBulkString channel,boolean psub) {
         RESPPush respPush = new RESPPush(clientRESPVersion== IRESP.RESPVersion.RESP3,
-                UNSUBSCRIBE,channel,new RESPInteger(channelsISubscribeTo.size()));
+                psub?PUNSUBSCRIBE:UNSUBSCRIBE,channel,new RESPInteger(psub?patternsISubscribeTo.size():channelsISubscribeTo.size()));
         queue(respPush,0);
     }
 
     public void subscribeTo( PubSubChannel psc ) {
-        channelsISubscribeTo.put(psc.getName(),psc);
-        psc.subscribe(this);
-        queuePubSubSubscribe(psc.getBulkname());
+        if( psc.getName().compareTo("RESET") == 0 ) {
+            myServer.execute(RESET_COMMAND,this,0);
+        } else {
+            channelsISubscribeTo.put(psc.getName(), psc);
+            psc.subscribe(this);
+            queuePubSubSubscribe(psc.getBulkname(),false);
+        }
+    }
+
+    public void reset() {
+        //Kill all outgoing.
+        myWriter.reset();
+        //Ditch everything. This stuff will try to queue but the order numbers
+        //will all be higher than 1.
+        unsubscribeAll();
+        unsubscribeAllPatterns();
+        discardMulti();
+        clientRESPVersion = IRESP.RESPVersion.RESP2;
+        if( myServer.hasPassword() ) authed = false;
+        //And now, reset our order...so the next thing that comes through (Which should be RESET which we hard code to 1.
+        //And the next thing should be 2.
+        order = 2;
     }
 
     public void unsubscribeTo( PubSubChannel psc ) {
         channelsISubscribeTo.remove(psc.getName());
         psc.unsubscribe(this);
-        queuePubSubUnsubscribe(psc.getBulkname());
+        queuePubSubUnsubscribe(psc.getBulkname(),false);
     }
 
+    RESPArray RESET_COMMAND = new RESPArray("RESET");
+
     public void subscribeToPattern(PatternHolder ph) {
-        patternsISubscribeTo.put(ph.pattern,ph);
-        ph.addClient(this);
+        if( ph.pattern.compareTo("RESET") == 0 ) {
+            myServer.execute(RESET_COMMAND,this,0);
+        } else {
+            patternsISubscribeTo.put(ph.pattern, ph);
+            ph.addClient(this);
+        }
     }
 
     public void unsubscribeToPattern(PatternHolder ph ) {
@@ -277,6 +327,7 @@ public class Client extends GoDog {
         multiMode = false;
         multiExecuting = false;
         multiModeError = false;
+        queuedStuff = new ArrayList<>();
         return previous;
     }
 

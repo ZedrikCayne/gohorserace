@@ -3,6 +3,7 @@ package com.justaddhippopotamus.ghr.RESP;
 import com.justaddhippopotamus.ghr.server.types.RedisString;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class RESPArrayScanner {
@@ -37,8 +38,8 @@ public class RESPArrayScanner {
 
     public String command() { return commands.argAt(0); }
     public String subcommand() { return commands.argAt(1); }
-    public boolean commandIs(String what) { return commands.argAt(0).compareTo(what)==0; }
-    public boolean subcommandIs(String what) { return commands.argAt(1).compareTo(what)==0; }
+    public boolean commandIs(String... what) { return Arrays.asList(what).contains(commands.argAt(0)); }
+    public boolean subcommandIs(String... what) { return Arrays.asList(what).contains(commands.argAt(1)); }
     public void setCurrent(int currentIndex) {
         this.currentIndex = currentIndex;
     }

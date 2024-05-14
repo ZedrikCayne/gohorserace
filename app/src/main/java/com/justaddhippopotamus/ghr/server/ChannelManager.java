@@ -8,7 +8,11 @@ public class ChannelManager {
     ConcurrentHashMap<String,PubSubChannel> channels = new ConcurrentHashMap<>();
     ConcurrentHashMap<String,PatternHolder> patterns = new ConcurrentHashMap<>();
 
+    private static PatternHolder RESET = new PatternHolder("RESET");
+    private static PubSubChannel RESET_PSC = new PubSubChannel("RESET",null);
+
     synchronized public PatternHolder getPattern(String pattern) {
+        if( pattern.compareTo("RESET") == 0 ) return RESET;
         if( !patterns.containsKey(pattern) ) {
             PatternHolder ph = new PatternHolder(pattern);
             channels.values().stream().filter(c->ph.matches(c.getName())).forEach(c->ph.addChannel(c));
@@ -18,6 +22,7 @@ public class ChannelManager {
     }
 
     synchronized public PubSubChannel getChannel(String name) {
+        if( name.compareTo("RESET") == 0 ) return RESET_PSC;
         if( !channels.containsKey(name) ) {
             PubSubChannel psc = new PubSubChannel(name,this);
             channels.put(name,psc);
