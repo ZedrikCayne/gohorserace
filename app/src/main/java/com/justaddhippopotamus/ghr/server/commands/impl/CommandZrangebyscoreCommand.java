@@ -10,6 +10,6 @@ import com.justaddhippopotamus.ghr.server.WorkItem;
 public class CommandZrangebyscoreCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
-        CommandZrangeCommand.zrangeGenericCommandAndQueue(item.what,item.whoFor,item.order,1, true,true,false, false, null);
+        CommandZrangeCommand.zrangeGenericCommandAndQueue(item.what,item.whoFor,item.order,1, true,false,false, false, null);
     }
 }

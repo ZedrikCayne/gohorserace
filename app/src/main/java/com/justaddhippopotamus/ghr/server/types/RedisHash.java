@@ -19,6 +19,10 @@ public class RedisHash extends RedisType {
         wireType(IRESP.RESPVersion.RESP2).publishTo(os);
     }
 
+    public synchronized int size() {
+        return value.size();
+    }
+
     @Override
     public void readFrom(InputStream is) throws IOException {
         RESPArray ra = RESPArray.readFull(is);
@@ -63,21 +67,20 @@ public class RedisHash extends RedisType {
         count = mycount;
         LinkedList<String> keyString = new LinkedList<>(keys());
         int len = keyString.size();
-        if( count >= len && !duplicates ) {
-            return keyString;
-        }
-        Random r = new Random();
-        if( !duplicates && count > len / 2 ) {
-            while( mycount > 0 ) {
-                keyString.remove(r.nextInt(mycount));
-                --mycount;
-            }
-        } else {
-            List<String> arrayList = new ArrayList<>(keyString);
-            keyString.clear();
-            while( mycount > 0 ) {
-                keyString.add(arrayList.get(r.nextInt(len)));
-                --mycount;
+        if( !(count >= len && !duplicates) ) {
+            Random r = new Random();
+            if (!duplicates && count > len / 2) {
+                while (mycount > 0) {
+                    keyString.remove(r.nextInt(mycount));
+                    --mycount;
+                }
+            } else {
+                List<String> arrayList = new ArrayList<>(keyString);
+                keyString.clear();
+                while (mycount > 0) {
+                    keyString.add(arrayList.get(r.nextInt(len)));
+                    --mycount;
+                }
             }
         }
         if( withValues ) {

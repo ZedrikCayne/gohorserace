@@ -43,7 +43,7 @@ public class CommandBitopCommand extends ICommandImplementation {
                 if (maxString < 0) {
                     return new RedisString();
                 }
-                RedisString result = new RedisString(maxString);
+                RedisString result = RedisString.redisStringOfLength(maxString);
                 result.setBitOp(allStrings.get(0));
                 for( int i = 1; i < allStrings.size(); ++i ) {
                     RedisString other = allStrings.get(i);
@@ -66,10 +66,6 @@ public class CommandBitopCommand extends ICommandImplementation {
             });
         }
         item.getMainStorage().store(dest, returnValue);
-
-
-
-
-
+        item.whoFor.queueInteger(returnValue.length(),item.order);
     }
 }

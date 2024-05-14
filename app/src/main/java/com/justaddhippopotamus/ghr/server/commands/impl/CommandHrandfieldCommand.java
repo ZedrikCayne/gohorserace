@@ -2,6 +2,7 @@
 package com.justaddhippopotamus.ghr.server.commands.impl;
 
 import com.justaddhippopotamus.ghr.RESP.RESPArrayScanner;
+import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
 import com.justaddhippopotamus.ghr.server.ICommandImplementation;
 import com.justaddhippopotamus.ghr.server.Command;
 import com.justaddhippopotamus.ghr.server.WorkItem;
@@ -19,22 +20,37 @@ public class CommandHrandfieldCommand extends ICommandImplementation {
     public void runCommand(WorkItem item) {
         RESPArrayScanner commands = item.scanner();
         String key = commands.key();
-        int count = 1;
-        boolean WITHVALUES = false;
-        boolean hasCount = false;
+        int count;
+        boolean WITHVALUES;
+        boolean hasCount;
         if( commands.hasNext() ) {
             hasCount = true;
             count = commands.takeInt();
             WITHVALUES = commands.argIs("WITHVALUES");
+        } else {
+            hasCount = false;
+            count = 1;
+            WITHVALUES = false;
         }
         RedisHash rh = item.getMainStorage().fetchRO(key, RedisHash.class);
         if( rh == null ) {
-            if( hasCount == false )
-                item.whoFor.queueNullBulkString(item.order);
-            else
+            if( hasCount )
                 item.whoFor.queueEmptyArray(item.order);
+            else
+                item.whoFor.queueNullBulkString(item.order);
         } else {
-            item.whoFor.queue(rh.rand(count,WITHVALUES),item.order);
+            rh.atomic( (RedisHash h) -> {
+                if( h.size() == 0 ) {
+                    if( hasCount )
+                        item.whoFor.queueEmptyArray(item.order);
+                    else
+                        item.whoFor.queueNullBulkString(item.order);
+                }
+                if (hasCount)
+                    item.whoFor.queue(h.rand(count, WITHVALUES), item.order);
+                else
+                    item.whoFor.queue(new RESPBulkString(h.rand(count, false).get(0)), item.order);
+            });
         }
     }
 }

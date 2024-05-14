@@ -1,5 +1,6 @@
 package com.justaddhippopotamus.ghr.RESP;
 
+import com.justaddhippopotamus.ghr.server.Client;
 import com.justaddhippopotamus.ghr.server.Server;
 
 import java.io.IOException;
@@ -59,6 +60,17 @@ public abstract class IRESP {
         return returnInteger;
     }
 
+    protected long readTerminatedLong(InputStream in) throws java.io.IOException {
+        String integerAsString = readTerminatedString(in);
+        long returnInteger = 0;
+        try {
+            returnInteger = Long.parseLong(integerAsString,10);
+        } catch (Exception e) {
+            throwIOException("Could not parse long out of " + integerAsString);
+        }
+        return returnInteger;
+    }
+
     protected void readExpectedCRLF(InputStream in) throws java.io.IOException {
         if( in.read() != CR || in.read() != LF )
             throwIOException("Failed to read expected CRLF");
@@ -83,7 +95,11 @@ public abstract class IRESP {
     public static final int SPACE = 32;
 
     public enum RESPVersion {
-        RESP2,
-        RESP3
+        RESP2(Client.NIL_BULK_STRING),
+        RESP3(Client.NULL);
+
+        private IRESP myNull;
+        private RESPVersion(IRESP myNull) { this.myNull= myNull; }
+        public IRESP nullFor() { return myNull; }
     }
 }

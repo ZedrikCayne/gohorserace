@@ -32,7 +32,7 @@ public class TypeStorage {
     public synchronized boolean store(final String key, RedisType value, final boolean NX, final boolean PX, final boolean KEEPTTL ) {
         if( NX || PX || KEEPTTL ) {
             RedisType rt = inMemoryBasic.getOrDefault(key, null);
-            boolean rtValid = RedisType.isNullOrExpired(rt);
+            boolean rtValid = !RedisType.isNullOrExpired(rt);
             if( KEEPTTL && rtValid ) value.expireAtMilliseconds = rt.expireAtMilliseconds;
             if( rtValid && NX ) return true;
             if( !rtValid && PX ) return true;
@@ -47,6 +47,13 @@ public class TypeStorage {
             value.expireAtMilliseconds = rt.expireAtMilliseconds;
         inMemoryBasic.put(key,value);
         return rt;
+    }
+    public synchronized <T extends RedisType> T storeWithGetClassed(final String key, T value, Class<T> type, final boolean KEEPTTL ) {
+        T oldType = fetchRW(key, type);
+        if( KEEPTTL && oldType != null )
+            value.expireAtMilliseconds = oldType.expireAtMilliseconds;
+        inMemoryBasic.put(key,value);
+        return oldType;
     }
 
     public synchronized boolean keyExists(final String key) {
@@ -65,7 +72,9 @@ public class TypeStorage {
 
     public String randkey() {
         Set<String> s = getKeySetCopy();
-        if( s.size() == 0 ) return null;
+        int len = s.size();
+        if( len == 0 ) return null;
+        if( len == 1 ) return s.stream().findFirst().get();
         Iterator<String> i = s.stream().iterator();
         Random r = new Random();
         int target = r.nextInt(s.size()-1);
@@ -87,7 +96,7 @@ public class TypeStorage {
     private synchronized RedisType fetchDelOnExpire(final String key) {
         RedisType rt = inMemoryBasic.getOrDefault(key, null);
         if( rt != null ) {
-            if( rt.expired() ) {
+            if( rt.expired() || rt.canBeReaped() ) {
                 inMemoryBasic.remove(key);
                 return null;
             }

@@ -22,11 +22,10 @@ public class CommandZscoreCommand extends ICommandImplementation {
         RedisSortedSet rss = item.getMainStorage().fetchRO(key, RedisSortedSet.class);
         if( rss != null ) {
             Double score = rss.getScore( member );
-            if( score == null ) {
-                item.whoFor.queueNullBulkString(item.order);
-            } else {
+            if( score != null ) {
                 item.whoFor.queue( new RESPBulkString(score), item.order );
             }
         }
+        item.whoFor.queueNullBulkString(item.order);
     }
 }

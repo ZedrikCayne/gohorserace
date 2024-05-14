@@ -13,6 +13,7 @@ import com.justaddhippopotamus.ghr.server.types.RedisType;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /* File just to have a class here for the ServerCommands to import should this
    directory be otherwise empty.
@@ -21,7 +22,8 @@ public class CommandSinterCommand extends ICommandImplementation {
     public static RedisSet genericCommand(WorkItem item) {
         RESPArrayScanner commands = item.scanner();
         if( commands.commandIs("SINTERSTORE") ) commands.string();
-        List<String> keys = commands.remainingElementsRequired(0);
+        List<String> keys = commands.commandIs("SINTERCARD")?commands.getNumKeys():commands.remainingElementsRequired(0);
+        int limit = commands.argIs("LIMIT")?commands.takeInt():Integer.MAX_VALUE;
         Client client = item.whoFor;
         List<RedisSet> allSets = client.getMainStorage().fetchROMany(keys,RedisSet.class);
         if( allSets.contains(null) )
@@ -42,6 +44,9 @@ public class CommandSinterCommand extends ICommandImplementation {
                     output.remove(s);
                 if (output.isEmpty())
                     break;
+            }
+            if( output.size() > limit ) {
+                output = output.stream().limit(limit).collect(Collectors.toSet());
             }
             return new RedisSet(output);
         });

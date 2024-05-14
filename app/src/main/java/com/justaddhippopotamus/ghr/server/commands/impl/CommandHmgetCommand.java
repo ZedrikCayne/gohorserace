@@ -28,7 +28,7 @@ public class CommandHmgetCommand extends ICommandImplementation {
         if( rh == null ) {
             RESPArray returnValue = new RESPArray(fields.size());
             for(int i = 0; i < len; ++i ) {
-                returnValue.addRespElement(Client.NIL_ARRAY);
+                returnValue.addRespElement(Client.NIL_BULK_STRING);
             }
             item.whoFor.queue(returnValue, item.order);
         } else {
@@ -36,7 +36,7 @@ public class CommandHmgetCommand extends ICommandImplementation {
             for(int i = 0; i < len; ++i ) {
                 RedisString rs = rh.value.getOrDefault(fields.get(i),null);
                 if( rs == null )
-                    returnValue.addRespElement(Client.NIL_ARRAY);
+                    returnValue.addRespElement(Client.NIL_BULK_STRING);
                 else
                     returnValue.addRespElement(new RESPBulkString(rs));
             }

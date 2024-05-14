@@ -26,6 +26,7 @@ public class CommandExpireCommand extends ICommandImplementation {
                 add = 0;
             case "PEXPIRE":
                 multiplier = 1;
+                break;
             default:
                 throw new RuntimeException("Bad argument for expire command.");
         }

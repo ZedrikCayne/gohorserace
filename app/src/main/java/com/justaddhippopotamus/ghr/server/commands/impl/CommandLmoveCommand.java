@@ -25,7 +25,7 @@ public class CommandLmoveCommand extends ICommandImplementation {
         } else {
             RedisList destinationList = sourceList;
             if( destination.compareTo(source) != 0 ) {
-                destinationList = item.getMainStorage().fetchRW(source,RedisList.class, RedisList::new);
+                destinationList = item.getMainStorage().fetchRW(destination,RedisList.class, RedisList::new);
             }
             item.whoFor.queue(new RESPBulkString(sourceList.move(destinationList,LEFTFROM,LEFTTO)),item.order);
         }

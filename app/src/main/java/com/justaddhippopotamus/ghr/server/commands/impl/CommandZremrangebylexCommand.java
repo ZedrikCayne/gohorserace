@@ -25,7 +25,7 @@ public class CommandZremrangebylexCommand extends ICommandImplementation {
             item.whoFor.queueInteger(0, item.order);
         } else {
             rss.atomic( t ->
-                item.whoFor.queueInteger( rss.removeAll(rss.range(min,max,false,true,false,false,0,0,false)),item.order));
+                item.whoFor.queueInteger( rss.removeAll(rss.range(min,max,true,false,false,false,0,0,false)),item.order));
         }
     }
 }

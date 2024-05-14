@@ -39,9 +39,12 @@ public class CommandLposCommand extends ICommandImplementation {
             List<Integer> posResult = rl.pos(element,count,maxLen,rank);
             if( posResult.isEmpty() ) {
                 item.whoFor.queueNullArray(item.order);
+                return;
             }
             if( hasCount ) {
                 item.whoFor.queue(RESPArray.RESPArrayIntegers(posResult),item.order);
+            } else {
+                item.whoFor.queueInteger(posResult.get(0),item.order);
             }
         }
     }

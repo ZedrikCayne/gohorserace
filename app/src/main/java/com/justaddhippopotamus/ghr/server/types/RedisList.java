@@ -89,12 +89,14 @@ public class RedisList extends RedisType {
         int length = 0;
         boolean hasCount = count > 0;
         boolean hasMaxLen = maxlen > 0;
+        int len = value.size();
         while( iter.hasNext() ) {
             String that = iter.next();
             if( that.compareTo(what) == 0 ) {
                 ++found;
                 if( found >= realRank) {
-                    returnValue.add(length);
+                    if( reverse ) returnValue.add(len - length - 1);
+                    else returnValue.add(length);
                     ++taken;
                 }
                 if( hasCount && taken >= count )
@@ -115,6 +117,11 @@ public class RedisList extends RedisType {
             returnValue.add( value.removeLast() );
         }
         return returnValue;
+    }
+
+    @Override
+    public boolean canBeReaped() {
+        return (value.isEmpty());
     }
     public synchronized String move(RedisList destination, boolean leftFrom, boolean leftDestination ) {
         if( value.size() > 0 ) {
@@ -138,7 +145,7 @@ public class RedisList extends RedisType {
             if( index > 0 )
                 returnValue = value.get(index);
             else
-                returnValue = value.get(value.size() - index - 1);
+                returnValue = value.get(value.size() + index);
         }
         return returnValue;
     }
@@ -221,7 +228,7 @@ public class RedisList extends RedisType {
         } else {
             for( int i = 0; i < realStart; ++i )
                 value.removeFirst();
-            for( int i = realStop; i < len; ++i )
+            for( int i = realStop + 1; i < len; ++i )
                 value.removeLast();
         }
     }

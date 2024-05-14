@@ -10,6 +10,6 @@ import com.justaddhippopotamus.ghr.server.WorkItem;
 public class CommandZrangestoreCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
-        CommandZrangeCommand.zrangeGenericCommandAndQueue(item.what,item.whoFor,item.order,2,false,false,false, false, item.what.stringAt(1));
+        CommandZrangeCommand.zrangeGenericCommandAndQueue(item.what,item.whoFor,item.order,2,false,false,false, true, item.what.stringAt(1));
     }
 }

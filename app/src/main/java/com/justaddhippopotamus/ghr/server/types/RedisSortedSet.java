@@ -14,17 +14,19 @@ import java.util.stream.Collectors;
 
 public class RedisSortedSet extends RedisType {
     public static final char prefix = '<';
-    private static final Compy<Integer> GT_INT  = (a, b) -> a>b;
-    private static final Compy<Integer> GTE_INT = (a, b) -> a>=b;
-    private static final Compy<Integer> LT_INT  = (a, b) -> a<b;
-    private static final Compy<Integer> LTE_INT = (a, b) -> a<=b;
+    private static final Compy<Integer> GT_INT     = (a, b) -> a>b;
+    private static final Compy<Integer> GTE_INT    = (a, b) -> a>=b;
+    private static final Compy<Integer> LT_INT     = (a, b) -> a<b;
+    private static final Compy<Integer> LTE_INT    = (a, b) -> a<=b;
     private static final Compy<Double>  GT_DOUBLE  = (a,b) -> a>b;
     private static final Compy<Double>  GTE_DOUBLE = (a,b) -> a>=b;
-    private static final Compy<Double>  LT_DOUBLE = (a,b) -> a<b;
+    private static final Compy<Double>  LT_DOUBLE  = (a,b) -> a<b;
     private static final Compy<Double>  LTE_DOUBLE = (a,b) -> a<=b;
     private static final Compy<String>  GT_STRING  = (a,b) -> a.compareTo(b)>0;
+    private static final Compy<String>  COMP_TRUE  = (a,b) -> true;
+    private static final Compy<String>  COMP_FALSE = (a,b) -> false;
     private static final Compy<String>  GTE_STRING = (a,b) -> a.compareTo(b)>=0;
-    private static final Compy<String>  LT_STRING = (a,b) -> a.compareTo(b)<0;
+    private static final Compy<String>  LT_STRING  = (a,b) -> a.compareTo(b)<0;
     private static final Compy<String>  LTE_STRING = (a,b) -> a.compareTo(b)<=0;
 
     //Implementation of the sorted set (
@@ -76,15 +78,12 @@ public class RedisSortedSet extends RedisType {
     public synchronized List<SetValue> rand(int count, boolean distinct) {
         Set<String> keys = value.keySet();
 
-        if (count > value.size() && !distinct) {
+        if (count >= value.size() && distinct) {
             return sortedValue.stream().collect(Collectors.toList());
         }
 
         String[] keyArray = keys.toArray(new String[0]);
-        List<SetValue> setValues = new ArrayList<>(count);
-
         Random rand = new Random();
-
         List<SetValue> returnValue = new ArrayList<>(count);
         Set<String> taken = new HashSet<>(keyArray.length);
         for (int i = 0; i < count; ++i) {
@@ -98,14 +97,14 @@ public class RedisSortedSet extends RedisType {
     public synchronized double incr(String key, double amount) {
         SetValue sv = value.getOrDefault(key, null);
         if (sv == null) {
-            sv = new SetValue(key, amount);
-            value.put(key, sv);
+            addRaw(key,amount);
+            return amount;
         } else {
             sortedValue.remove(sv);
             sv.score += amount;
+            sortedValue.add(sv);
+            return sv.score;
         }
-        sortedValue.add(sv);
-        return sv.score;
     }
 
     public synchronized double incr(Map<String,Double> stuffToAdd) {
@@ -125,8 +124,8 @@ public class RedisSortedSet extends RedisType {
             if( previous != null) {
                 if( !NX ) {
                     int compared = previous.compareScore(v);
-                    if( (GT&&compared>0)
-                      ||(LT&&compared<0)
+                    if( (GT&&compared<0)
+                      ||(LT&&compared>0)
                       ||(!GT&&!LT) ) {
                         if( compared != 0 ) {
                             numChanged++;
@@ -171,7 +170,7 @@ public class RedisSortedSet extends RedisType {
         for (RedisSortedSet.SetValue sortedValue : sortedValue ) {
             returnValue.add(sortedValue.key);
             if (WITHSCORES) {
-                returnValue.add(String.valueOf(sortedValue.score));
+                returnValue.add(Utils.doubleToStringRedisStyle(sortedValue.score));
             }
         }
         return returnValue;
@@ -196,9 +195,9 @@ public class RedisSortedSet extends RedisType {
 
     private List<String> range(String start, String stop, boolean REV, boolean LIMIT, int offset, int count, boolean WITHSCORES ) {
         int len = sortedValue.size();
-        int startIndex = Utils.rangeIndex(start,len);
+        int startIndex = Utils.rangeIndex(start,len,REV);
         boolean startInclusive = Utils.rangeStringInclusive(start);
-        int stopIndex = Utils.rangeIndex(stop,len);
+        int stopIndex = Utils.rangeIndex(stop,len,REV);
         boolean stopInclusive = Utils.rangeStringInclusive(start);
         List<String> returnValue = new ArrayList<>(sortedValue.size() * (WITHSCORES?2:1));
         Iterator<SetValue> iter;
@@ -246,7 +245,7 @@ public class RedisSortedSet extends RedisType {
                 }
                 returnValue.add(next.key);
                 if( WITHSCORES )
-                    returnValue.add(String.valueOf(next.score));
+                    returnValue.add(Utils.doubleToStringRedisStyle(next.score));
                 if( LIMIT ) {
                     ++taken;
                     if( taken >= count )
@@ -269,24 +268,40 @@ public class RedisSortedSet extends RedisType {
         Compy<String> stopComp;
         if( REV ) {
             iter = sortedKeys.descendingIterator();
-            if( startInclusive )
-                startComp = LTE_STRING;
-            else
-                startComp = LT_STRING;
-            if( stopInclusive )
-                stopComp = LT_STRING;
-            else
-                stopComp = LTE_STRING;
+            if( startIndex.compareTo("+") == 0 ) {
+                startComp = COMP_TRUE;
+            } else {
+                if (startInclusive)
+                    startComp = LTE_STRING;
+                else
+                    startComp = LT_STRING;
+            }
+            if( stopIndex.compareTo("-") == 0 ) {
+                stopComp = COMP_FALSE;
+            } else {
+                if (stopInclusive)
+                    stopComp = LT_STRING;
+                else
+                    stopComp = LTE_STRING;
+            }
         } else {
             iter = sortedKeys.iterator();
-            if( startInclusive )
-                startComp = GTE_STRING;
-            else
-                startComp = GT_STRING;
-            if( stopInclusive )
-                stopComp = GT_STRING;
-            else
-                stopComp = GTE_STRING;
+            if( startIndex.compareTo("-") == 0 ) {
+                startComp = COMP_TRUE;
+            } else {
+                if (startInclusive)
+                    startComp = GTE_STRING;
+                else
+                    startComp = GT_STRING;
+            }
+            if( stopIndex.compareTo("+") == 0 ) {
+                stopComp = COMP_FALSE;
+            } else {
+                if (stopInclusive)
+                    stopComp = GT_STRING;
+                else
+                    stopComp = GTE_STRING;
+            }
         }
         List<String> returnValue = new ArrayList<>(len*(WITHSCORES?2:1));
         while( iter.hasNext() ) {
@@ -302,7 +317,7 @@ public class RedisSortedSet extends RedisType {
                 }
                 returnValue.add(next);
                 if( WITHSCORES ) {
-                    returnValue.add(String.valueOf(value.get(next).score));
+                    returnValue.add(Utils.doubleToStringRedisStyle(value.get(next).score));
                 }
                 if( LIMIT ) {
                     ++taken;
@@ -362,7 +377,7 @@ public class RedisSortedSet extends RedisType {
                 }
                 returnValue.add(next.key);
                 if( WITHSCORES ) {
-                    returnValue.add(String.valueOf(next.score));
+                    returnValue.add(Utils.doubleToStringRedisStyle(next.score));
                 }
                 if( LIMIT ) {
                     ++taken;

@@ -47,7 +47,7 @@ public class Client extends GoDog {
                     StuffToSend nextToSend = myClient.stuffToSend.take();
                     if (nextToSend.order == 0 || nextToSend.order == orderNext) {
                         if( Server.verbose )
-                            System.out.println(myClient.hashCode() + ": " + nextToSend.theData);
+                            System.out.println(myClient.hashCode() + ": " + nextToSend.theData.prettyString());
                         nextToSend.theData.publishTo(myStream);
                         if (nextToSend.order == orderNext)
                             ++orderNext;
@@ -355,7 +355,7 @@ public class Client extends GoDog {
     }
 
     public void queueRedisStrings(Collection<RedisString> toSend, long order) {
-        RESPArray respToSend = RESPArray.RESPArrayRedisStrings(toSend);
+        RESPArray respToSend = RESPArray.RESPArrayRedisStrings(toSend,clientRESPVersion);
         queue(respToSend, order);
     }
 

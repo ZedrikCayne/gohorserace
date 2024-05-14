@@ -83,8 +83,9 @@ public class RedisSet extends RedisType {
     }
 
     public synchronized int add(Collection<String> addThis) {
+        int currentSize = value.size();
         value.addAll(addThis);
-        return value.size();
+        return value.size() - currentSize;
     }
 
     public synchronized int add(final RedisSet other) {

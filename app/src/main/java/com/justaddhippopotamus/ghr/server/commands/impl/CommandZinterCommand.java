@@ -53,8 +53,9 @@ public class CommandZinterCommand extends ICommandImplementation {
             Set<String> keysToNuke = new HashSet<>(result.size());
             for( int i = 1; i < len; ++i ) {
                 keysToNuke.clear();
-                RedisSortedSet rs = all.get(i);
-                for( String key : result.keySet() ) {
+                KWSET kwset = kwsets.get(i);
+                RedisSortedSet rs = kwset.set;
+                for( String key : unionMode?rs.keys():result.keySet() ) {
                     Double score = rs.getScore(key);
                     if( score == null ) {
                         if( !unionMode )
@@ -62,14 +63,14 @@ public class CommandZinterCommand extends ICommandImplementation {
                     } else {
                         switch(mode) {
                             case AGGREGATE_MODE_SUM:
-                                result.put(key,result.get(key) + score);
+                                result.put(key,result.getOrDefault(key,0.0D) + score);
                                 break;
                             case AGGREGATE_MODE_MAX:
-                                if( score > result.get(key) )
+                                if( score > result.getOrDefault(key,Double.MIN_VALUE) )
                                     result.put(key,score);
                                 break;
                             case AGGREGATE_MODE_MIN:
-                                if( score < result.get(key) )
+                                if( score < result.getOrDefault(key,Double.MAX_VALUE) )
                                     result.put(key,score);
                                 break;
                         }
@@ -94,7 +95,6 @@ public class CommandZinterCommand extends ICommandImplementation {
                 case "MAX":
                     return CommandZinterCommand.AGGREGATE_MODE.AGGREGATE_MODE_MAX;
                 case "SUM":
-                case "":
                     break;
                 default:
                     throw new RuntimeException("Bad args");
@@ -133,10 +133,7 @@ public class CommandZinterCommand extends ICommandImplementation {
         if( commands.argIs("WEIGHTS") ) {
             weights = commands.takeDoubles(numKeys);
         }
-        AGGREGATE_MODE mode = AGGREGATE_MODE.AGGREGATE_MODE_SUM;
-        if( commands.argIs("AGGREGATE") ) {
-            mode = getAggregateMode(commands);
-        }
+        AGGREGATE_MODE mode = getAggregateMode(commands);
         boolean WITHSCORES = commands.argIs("WITHSCORES");
         if( commands.argIs("LIMIT") ) limit = commands.takeInt();
 

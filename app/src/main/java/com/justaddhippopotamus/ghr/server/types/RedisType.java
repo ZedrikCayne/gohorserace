@@ -31,13 +31,17 @@ public abstract class RedisType {
     }
     public synchronized int setExpireMilliseconds( long newExpireMilliseconds, boolean NX, boolean XX, boolean GT, boolean LT ) {
         boolean hasExpirySet = !isPersistent();
-        if( ( NX && !hasExpirySet )
-          ||( XX && hasExpirySet )
-          ||( GT && newExpireMilliseconds <= expireAtMilliseconds)
-          ||( LT && newExpireMilliseconds >= expireAtMilliseconds) )
+        if( ( NX && hasExpirySet )
+          ||( XX && !hasExpirySet )
+          ||( GT && (!hasExpirySet && newExpireMilliseconds >= expireAtMilliseconds))
+          ||( LT && (!hasExpirySet && newExpireMilliseconds <= expireAtMilliseconds)) )
             return EXPIRY_NOT_SET;
         expireAtMilliseconds = newExpireMilliseconds;
         return EXPIRY_SET;
+    }
+
+    public synchronized boolean canBeReaped() {
+        return false;
     }
     public synchronized long getTTLMilliseconds() {
         return System.currentTimeMillis() - expireAtMilliseconds;

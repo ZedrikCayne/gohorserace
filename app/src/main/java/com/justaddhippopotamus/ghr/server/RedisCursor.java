@@ -35,7 +35,7 @@ public class RedisCursor {
 
     private RESPArray bundleReturnValue(RESPArray ra) {
         RESPArray returnValue = new RESPArray(2);
-        returnValue.addRespElement(new RESPInteger(isDone()?0:cursorId));
+        returnValue.addRespElement(new RESPBulkString(isDone()?"0":String.valueOf(cursorId)));
         returnValue.addRespElement(ra);
         return returnValue;
     }
@@ -104,7 +104,7 @@ public class RedisCursor {
                     if( x.keys().contains(key) ) {
                         ++taken[0];
                         ra.addString(key);
-                        if( !noValues )ra.addString(x.getScore(key).toString());
+                        if( !noValues )ra.addString(Utils.doubleToStringRedisStyle(x.getScore(key)));
                     }
                 });
             }

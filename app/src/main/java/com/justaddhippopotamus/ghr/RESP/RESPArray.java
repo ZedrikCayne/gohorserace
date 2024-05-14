@@ -86,6 +86,21 @@ public class RESPArray extends IRESP {
         collection.forEach(c -> value.add(new RESPBulkString(c)));
     }
 
+    public static RESPArray RESPArrayWithNulls(Collection<String> collection, RESPVersion v) {
+        List<IRESP> value = new ArrayList<>(collection.size());
+        collection.forEach(c -> {
+            if( c == null ) {
+                if( v == RESPVersion.RESP3 )
+                    value.add(Client.NULL);
+                else
+                    value.add(Client.NIL_BULK_STRING);
+            } else {
+                value.add(new RESPBulkString(c));
+            }
+        });
+        return new RESPArray(value);
+    }
+
 
     public static RESPArray RESPArrayIntegers(Collection<Integer> collection) {
         RESPArray returnValue = new RESPArray(collection.size());
@@ -99,9 +114,15 @@ public class RESPArray extends IRESP {
         return returnValue;
     }
 
-    public static RESPArray RESPArrayRedisStrings(Collection<RedisString> collection) {
+    public static RESPArray RESPArrayRedisStrings(Collection<RedisString> collection,RESPVersion v) {
         RESPArray returnValue = new RESPArray(collection.size());
-        collection.forEach( c -> returnValue.addRespElement(new RESPBulkString(c)));
+        collection.forEach( c -> {
+            if( c == null ) {
+                returnValue.addRespElement(v.nullFor());
+            } else {
+                returnValue.addRespElement(new RESPBulkString(c));
+            }
+        });
         return returnValue;
     }
 
@@ -250,12 +271,14 @@ public class RESPArray extends IRESP {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append( "RESPArray[" );
-        for( IRESP p : value ) {
-            sb.append(p.prettyString());
-            sb.append(",");
+        if( value != null ) {
+            for (IRESP p : value) {
+                sb.append(p.prettyString());
+                sb.append(",");
+            }
+            if (value.size() > 0)
+                sb.deleteCharAt(sb.length() - 1);
         }
-        if( value.size() > 0 )
-            sb.deleteCharAt(sb.length()-1);
         sb.append(']');
         return sb.toString();
     }

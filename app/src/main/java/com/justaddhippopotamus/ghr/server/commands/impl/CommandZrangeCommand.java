@@ -67,7 +67,7 @@ public class CommandZrangeCommand extends ICommandImplementation {
             List<String> returnValue = ss.range(start, stop, BYLEX, BYSCORE, REV, LIMIT, offset, count, WITHSCORES);
             if( storeTo != null ) {
                 client.getMainStorage().store(storeTo, new RedisSortedSet(returnValue));
-                client.queueInteger(returnValue.size(),order);
+                client.queueInteger(returnValue.size()/2,order);
             } else {
                 client.queue( returnValue,order );
             }

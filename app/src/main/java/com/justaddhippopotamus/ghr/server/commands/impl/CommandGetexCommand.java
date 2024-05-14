@@ -16,7 +16,7 @@ public class CommandGetexCommand extends ICommandImplementation {
     public void runCommand(WorkItem item) {
         final RESPArrayScanner commands = item.scanner();
         String key = commands.string();
-        String action = commands.argOneOf("EX","PEX","EXAT","PXAT","PERSIST" );
+        String action = commands.argOneOf("EX","PX","EXAT","PXAT","PERSIST" );
         long millisecondTimeout = -1;
         long multiplier = 1;
         long addMe = 0;
@@ -24,7 +24,7 @@ public class CommandGetexCommand extends ICommandImplementation {
         switch (action) {
             case "EX":
                 multiplier = 1000L;
-            case "PEX":
+            case "PX":
                 addMe = System.currentTimeMillis();
                 break;
             case "EXAT":

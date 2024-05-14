@@ -4,6 +4,7 @@ package com.justaddhippopotamus.ghr.server.commands.impl;
 import com.justaddhippopotamus.ghr.RESP.RESPArray;
 import com.justaddhippopotamus.ghr.RESP.RESPArrayScanner;
 import com.justaddhippopotamus.ghr.server.ICommandImplementation;
+import com.justaddhippopotamus.ghr.server.Utils;
 import com.justaddhippopotamus.ghr.server.WorkItem;
 import com.justaddhippopotamus.ghr.server.types.RedisSortedSet;
 
@@ -19,7 +20,7 @@ public class CommandZincrbyCommand extends ICommandImplementation {
         String member = commands.string();
         commands.errorOnRemains();
 
-        RedisSortedSet ss = item.getMainStorage().fetchRW(key, RedisSortedSet.class, () -> new RedisSortedSet() );
-        item.whoFor.queueDouble( ss.incr(member, increment), item.order);
+        RedisSortedSet ss = item.getMainStorage().fetchRW(key, RedisSortedSet.class, RedisSortedSet::new);
+        item.whoFor.queueBulkString(Utils.doubleToStringRedisStyle(ss.incr(member, increment)), item.order);
     }
 }

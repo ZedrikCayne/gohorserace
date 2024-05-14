@@ -62,7 +62,7 @@ public class RESPBulkString extends IRESP {
     }
 
     public RESPBulkString(RedisString in) {
-        if( in.isNumeric() ) {
+        if (in.isNumeric()) {
             setValueFromString(in.toString());
         } else {
             value = in.getBytes();
@@ -121,7 +121,8 @@ public class RESPBulkString extends IRESP {
     @Override
     public String toString() {
         try {
-           return new String(value, Server.CHARSET);
+            if( value == null ) return super.toString();
+            return new String(value, Server.CHARSET);
         } catch (Exception e) {
             return super.toString();
         }

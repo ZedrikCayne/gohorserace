@@ -3,6 +3,7 @@ package com.justaddhippopotamus.ghr.server.types;
 import com.justaddhippopotamus.ghr.RESP.IRESP;
 import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
 import com.justaddhippopotamus.ghr.server.Server;
+import com.justaddhippopotamus.ghr.server.Utils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -290,36 +291,29 @@ public class RedisString extends RedisType {
         value = null;
     }
 
+    public static RedisString redisStringOfLength(int length) {
+        RedisString rs = new RedisString();
+        rs.value = new byte[length];
+        rs.isInteger = false;
+        rs.integerValue = 0;
+        return rs;
+    }
+
     public static RedisString redisStringLength(int size) {
         return new RedisString().ensureByteCapacity(size);
     }
 
     public synchronized long increment(long by) {
-        if( !isInteger ) {
-            throw new RuntimeException("String was not an integer");
-        }
+        makeIntegerOutOfValue();
         integerValue += by;
         return integerValue;
     }
 
     public synchronized RedisString incrementFloat(String by) {
         try {
-            double f = Double.parseDouble(by);
-            double mine = Double.parseDouble(this.toString());
-            String fmt = String.format(Locale.US,"%1.17f", f + mine);
-            int dotIndex = fmt.lastIndexOf('.');
-            if( dotIndex >= 0 ) {
-                int oldLength = fmt.length();
-                for (int i = oldLength - 1; i >= dotIndex; --i) {
-                    if (fmt.charAt(i) != '0') {
-                        if( fmt.charAt(i) == '.' )
-                            --i;
-                        fmt = fmt.substring(0, i + 1);
-                        break;
-                    }
-                }
-            }
-            set(fmt);
+            double f = Utils.stringToDoubleRedisStyle(by);
+            double mine = Utils.stringToDoubleRedisStyle(this.toString());
+            set(Utils.doubleToStringRedisStyle(mine+f));
         } catch (NumberFormatException e) {
             throw new RuntimeException("BADARG Cannot parse float");
         }
@@ -327,9 +321,7 @@ public class RedisString extends RedisType {
     }
 
     public synchronized long decrement(long by) {
-        if( !isInteger ) {
-            throw new RuntimeException("String was not an integer");
-        }
+        makeIntegerOutOfValue();
         integerValue -= by;
         return integerValue;
     }
@@ -342,16 +334,6 @@ public class RedisString extends RedisType {
         value = bytes;
     }
     public synchronized void set(String newValue) {
-        if( isStringNumeric(newValue) ) {
-            try {
-                integerValue = Integer.parseInt(newValue, 10);
-                isInteger = true;
-                value = null;
-                return;
-            } catch (Exception e) {
-
-            }
-        }
         isInteger = false;
         integerValue = 0;
         value = newValue.getBytes(Server.CHARSET);
@@ -390,7 +372,34 @@ public class RedisString extends RedisType {
         return new RESPBulkString(this);
     }
 
+    private long makeValueOutOfIntegerIfRequired()  {
+        if( isInteger ) {
+            value = String.valueOf(integerValue).getBytes(Server.CHARSET);
+            isInteger = false;
+        }
+        return integerValue;
+    }
+
+    private long makeIntegerOutOfValue() {
+        if( !isInteger ) {
+            String valString = new String(value, Server.CHARSET);
+            try {
+                integerValue = Long.parseLong(valString);
+                isInteger = true;
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Could not make a number out of " + valString);
+            }
+        }
+        return integerValue;
+    }
+
+    private void makeIntegerAgain(long value) {
+        isInteger = true;
+        integerValue = value;
+    }
+
     public int length() {
+        makeValueOutOfIntegerIfRequired();
         return value.length;
     }
 
@@ -415,19 +424,19 @@ public class RedisString extends RedisType {
     }
 
     public synchronized int setrange(int offset, RedisString append) {
-        if( append.length() + offset > value.length ) {
-            byte [] newValue = new byte[ append.length() + offset ];
-            System.arraycopy(value,0, newValue, 0, value.length);
+        makeValueOutOfIntegerIfRequired();
+        if (append.length() + offset > value.length) {
+            byte[] newValue = new byte[append.length() + offset];
+            System.arraycopy(value, 0, newValue, 0, value.length);
             value = newValue;
         }
-        System.arraycopy(append.value,0, value, offset, append.value.length);
+        System.arraycopy(append.value, 0, value, offset, append.value.length);
         return value.length;
     }
 
     public synchronized RESPBulkString range(int start, int end) {
-        if( isInteger ) {
-            value = String.valueOf(integerValue).getBytes(Server.CHARSET);
-        }
+        boolean wasInteger = isInteger;
+        long oldIntValue = makeValueOutOfIntegerIfRequired();
         int len = value.length;
         int realStart = realIndex(start,len);
         int realEnd = realIndex(end,len);
@@ -439,7 +448,9 @@ public class RedisString extends RedisType {
         if( realEnd > len )
             realEnd = len;
         int count = realEnd - realStart;
-        return new RESPBulkString(value,realStart,count);
+        RESPBulkString returnValue = new RESPBulkString(value,realStart,count);
+        if( wasInteger ) makeIntegerAgain(oldIntValue);
+        return returnValue;
     }
 
 
@@ -607,7 +618,7 @@ public class RedisString extends RedisType {
                 return ( value > overUnderFlowSigned[numbits*2] ||
                          value < overUnderFlowSigned[numbits*2+1] );
             } else {
-                return value > overUnderFlowSigned[numbits*2+1];
+                return value > overUnderFlowSigned[(numbits+1)*2];
             }
         }
 

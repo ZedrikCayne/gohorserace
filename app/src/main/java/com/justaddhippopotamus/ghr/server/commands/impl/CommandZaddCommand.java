@@ -57,7 +57,7 @@ public class CommandZaddCommand extends ICommandImplementation {
             throw new RuntimeException("Trying to set a list into a non list.");
         }
         if( INCR ) {
-            if( stuffToAdd.size() > 0 )
+            if( stuffToAdd.size() > 1 )
                 throw new RuntimeException("Too many things to increment at once.");
             item.whoFor.queueDouble(ss.incr(stuffToAdd),item.order);
         } else {

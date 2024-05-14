@@ -3,6 +3,7 @@ package com.justaddhippopotamus.ghr.server.commands.impl;
 
 import com.justaddhippopotamus.ghr.RESP.RESPArray;
 import com.justaddhippopotamus.ghr.RESP.RESPArrayScanner;
+import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
 import com.justaddhippopotamus.ghr.RESP.RESPInteger;
 import com.justaddhippopotamus.ghr.server.ICommandImplementation;
 import com.justaddhippopotamus.ghr.server.WorkItem;
@@ -32,7 +33,7 @@ public class CommandLmpopCommand extends ICommandImplementation {
                 if( returnValue == null || returnValue.isEmpty() )
                     continue;
                 RESPArray ra = new RESPArray();
-                ra.addRespElement(new RESPInteger(returnValue.size()));
+                ra.addRespElement(new RESPBulkString(key));
                 ra.addRespElement(new RESPArray(returnValue));
                 item.whoFor.queue(ra, item.order);
                 return;

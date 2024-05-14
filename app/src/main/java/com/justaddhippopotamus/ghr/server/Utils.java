@@ -133,7 +133,20 @@ public class Utils {
         if( value == Double.NaN ) {
             return "nan";
         }
-        return String.valueOf(value);
+        String fmt = String.format(Locale.US,"%1.17f", value);
+        int dotIndex = fmt.lastIndexOf('.');
+        if( dotIndex >= 0 ) {
+            int oldLength = fmt.length();
+            for (int i = oldLength - 1; i >= dotIndex; --i) {
+                if (fmt.charAt(i) != '0') {
+                    if( fmt.charAt(i) == '.' )
+                        --i;
+                    fmt = fmt.substring(0, i + 1);
+                    break;
+                }
+            }
+        }
+        return fmt;
     }
 
     public static boolean rangeStringInclusive(String rangeNumber) {
@@ -181,6 +194,17 @@ public class Utils {
             int returnValue = Integer.parseInt(parseableBit(rangeString));
             if( returnValue < 0 )
                 returnValue = max + returnValue;
+            return returnValue;
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Int not parseable of " + rangeString);
+        }
+    }
+    public static int rangeIndex(String rangeString,int max,boolean rev) {
+        try {
+            int returnValue = Integer.parseInt(parseableBit(rangeString));
+            if( returnValue < 0 )
+                returnValue = max + returnValue;
+            if(rev) returnValue = max - returnValue - 1;
             return returnValue;
         } catch (NumberFormatException e) {
             throw new RuntimeException("Int not parseable of " + rangeString);

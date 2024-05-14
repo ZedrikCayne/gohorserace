@@ -14,7 +14,7 @@ public class RESPInteger extends IRESP {
 
     @Override
     public boolean readFrom(InputStream in, IRESPFactory factory) throws java.io.IOException {
-        value = readTerminatedInteger(in);
+        value = readTerminatedLong(in);
         return false;
     }
 

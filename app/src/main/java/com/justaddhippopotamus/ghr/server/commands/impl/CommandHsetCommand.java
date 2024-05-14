@@ -20,6 +20,11 @@ public class CommandHsetCommand extends ICommandImplementation {
         String key = commands.key();
         List<RESPBulkString> pairs = commands.remainingBulkStrings();
         RedisHash rh = item.getMainStorage().fetchRW(key, RedisHash.class, RedisHash::new);
-        item.whoFor.queueInteger( rh.addPairs(pairs,false), item.order );
+        if( commands.commandIs("HSET") ) {
+            item.whoFor.queueInteger(rh.addPairs(pairs, false), item.order);
+        } else {
+            rh.addPairs(pairs,false);
+            item.whoFor.queueOK(item.order);
+        }
     }
 }

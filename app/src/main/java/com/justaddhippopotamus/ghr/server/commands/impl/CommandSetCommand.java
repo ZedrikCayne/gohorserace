@@ -17,7 +17,7 @@ public class CommandSetCommand extends ICommandImplementation {
             value.setExpireMilliseconds(milliseconds,false, false, false, false);
         }
         if( GET ) {
-            client.queue( client.getMainStorage().storeWithGet(key,value,KEEPTTL),order );
+            client.queue( client.getMainStorage().storeWithGetClassed(key,value,RedisString.class,KEEPTTL),order );
         }
         else {
             if (client.getMainStorage().store(key, value, NX, XX, KEEPTTL)) {
@@ -42,7 +42,7 @@ public class CommandSetCommand extends ICommandImplementation {
             case "EX":
                 milliseconds = commands.takeLong() * 1000L + System.currentTimeMillis();
                 break;
-            case "PEX":
+            case "PX":
                 milliseconds = commands.takeLong() + System.currentTimeMillis();
                 break;
             case "EXAT":

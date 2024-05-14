@@ -1,9 +1,11 @@
 
 package com.justaddhippopotamus.ghr.server.commands.impl;
 
+import com.justaddhippopotamus.ghr.RESP.RESPArray;
 import com.justaddhippopotamus.ghr.RESP.RESPArrayScanner;
 import com.justaddhippopotamus.ghr.server.ICommandImplementation;
 import com.justaddhippopotamus.ghr.server.Command;
+import com.justaddhippopotamus.ghr.server.Utils;
 import com.justaddhippopotamus.ghr.server.WorkItem;
 import com.justaddhippopotamus.ghr.server.types.RedisSortedSet;
 
@@ -22,10 +24,14 @@ public class CommandZmscoreCommand extends ICommandImplementation {
         List<String> members = arguments.remainingElementsRequired(0);
         List<String> values = new ArrayList<>(members.size());
         RedisSortedSet rss = item.getMainStorage().fetchRO(key, RedisSortedSet.class);
-        for( String member : members ) {
-            Double score = rss.getScore(key);
-            values.add( score==null?null:String.valueOf(score) );
+        if( rss == null ) {
+            item.whoFor.queueNullBulkString(item.order);
+        } else {
+            for (String member : members) {
+                Double score = rss.getScore(member);
+                values.add(score == null ? null : Utils.doubleToStringRedisStyle(score));
+            }
+            item.whoFor.queue(RESPArray.RESPArrayWithNulls(values,item.whoFor.clientRESPVersion), item.order);
         }
-        item.whoFor.queue(values, item.order);
     }
 }
