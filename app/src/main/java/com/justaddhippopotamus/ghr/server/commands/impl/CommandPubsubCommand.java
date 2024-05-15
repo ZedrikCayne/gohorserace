@@ -53,6 +53,8 @@ public class CommandPubsubCommand extends ICommandImplementation {
             case "SHARDNUMSUB":
                 shardnumsub(item,commands);
                 break;
+            default:
+                item.whoFor.queueSimpleError("I don't get: " + item.toString(), item.order);
         }
 
     }
