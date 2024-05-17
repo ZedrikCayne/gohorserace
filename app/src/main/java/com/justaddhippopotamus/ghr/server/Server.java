@@ -27,6 +27,8 @@ public class Server extends GoDog {
                 try {
                     idling = true;
                     WorkItem workItem = myServer.workItemQueue.take();
+                    if( workItem.alreadyCompleted() )
+                        continue;
                     if(Server.verbose)
                         System.out.println(workItem.toString());
                     idling = false;
@@ -122,6 +124,14 @@ public class Server extends GoDog {
     public void execute(RESPArray parameters, Client client, long order) {
         try {
             workItemQueue.put(new WorkItem(parameters, client, order));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public void execute(WorkItem i) {
+        try {
+            workItemQueue.put(i);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

@@ -1,14 +1,38 @@
 Welcome to Go Horse Race. Redis in Java.
 
-Not everything is implemented. This will respond to all available 7.2 commands, but spits errors.
+Using https://github.com/tair-opensource/compatibility-test-suite-for-redis
+we're getting close to having something which looks 'compatible'
 
-The implementations of commands are in server.commands.impl
+```
+Summary: version: 1.0.0, total tests: 50, passed: 50, rate: 100.00%
+Summary: version: 1.0.1, total tests: 2, passed: 2, rate: 100.00%
+Summary: version: 1.0.5, total tests: 2, passed: 2, rate: 100.00%
+Summary: version: 1.2.0, total tests: 14, passed: 14, rate: 100.00%
+Summary: version: 2.0.0, total tests: 32, passed: 32, rate: 100.00%
+Summary: version: 2.2.0, total tests: 15, passed: 15, rate: 100.00%
+Summary: version: 2.4.0, total tests: 8, passed: 8, rate: 100.00%
+Summary: version: 2.6.0, total tests: 15, passed: 13, rate: 86.67%
+Summary: version: 2.6.12, total tests: 2, passed: 2, rate: 100.00%
+Summary: version: 2.8.0, total tests: 10, passed: 7, rate: 70.00%
+Summary: version: 2.8.7, total tests: 1, passed: 1, rate: 100.00%
+Summary: version: 2.8.9, total tests: 9, passed: 6, rate: 66.67%
+Summary: version: 3.0.0, total tests: 1, passed: 0, rate: 0.00%
+Summary: version: 3.0.2, total tests: 1, passed: 1, rate: 100.00%
+Summary: version: 3.2.0, total tests: 22, passed: 3, rate: 13.64%
+Summary: version: 3.2.1, total tests: 1, passed: 1, rate: 100.00%
+Summary: version: 3.2.10, total tests: 4, passed: 0, rate: 0.00%
+Summary: version: 4.0.0, total tests: 7, passed: 7, rate: 100.00%
+Summary: version: 5.0.0, total tests: 24, passed: 4, rate: 16.67%
+Summary: version: 6.0.0, total tests: 8, passed: 6, rate: 75.00%
+Summary: version: 6.0.6, total tests: 5, passed: 5, rate: 100.00%
+Summary: version: 6.2.0, total tests: 62, passed: 44, rate: 70.97%
+Summary: version: 7.0.0, total tests: 55, passed: 25, rate: 45.45%
+Summary: version: 7.2.0, total tests: 2, passed: 2, rate: 100.00%
+```
 
-Under 'Command<>Command' (Don't judge)
+Most of what is missing involves streams, geo, and blocking sorted set commands and lua functions. (eval and evalsha work)
 
 Don't use this in production, but if you need a redis to run on windows and don't want to run the WSL this should do it for you.
-
-Running the script in src/implemented.sh gives you the implemented list.
 
 Implemented so far: (Note, some of the 'implemented' are more useful error messages saying we are never actually going to support this...)
 
@@ -23,6 +47,11 @@ BITFIELD
 BITFIELDRO
 BITOP
 BITPOS
+BLMOVE
+BLMPOP
+BLPOP
+BRPOP
+BRPOPLPUSH
 CLIENT
 CLIENTSETINFO
 COPY
@@ -48,6 +77,7 @@ GETBIT
 GETDEL
 GETEX
 GETRANGE
+GETSET
 HDEL
 HELLO
 HEXISTS
@@ -84,6 +114,7 @@ LSET
 LTRIM
 MGET
 MONITOR
+MOVE
 MSET
 MSETNX
 MULTI
@@ -92,6 +123,7 @@ PEXPIRE
 PEXPIREAT
 PEXPIRETIME
 PING
+PSETEX
 PSUBSCRIBE
 PTTL
 PUBLISH
@@ -101,6 +133,7 @@ QUIT
 RANDOMKEY
 RENAME
 RENAMENX
+RESET
 RPOP
 RPOPLPUSH
 RPUSH
@@ -112,6 +145,7 @@ SCARD
 SCRIPT
 SDIFF
 SDIFFSTORE
+SELECT
 SET
 SETBIT
 SETEX
@@ -124,6 +158,7 @@ SINTERSTORE
 SISMEMBER
 SMISMEMBER
 SMOVE
+SORT
 SPOP
 SRANDMEMBER
 SREM
@@ -132,10 +167,14 @@ STRLEN
 SUBSCRIBE
 SUNION
 SUNIONSTORE
+SWAPDB
 TIME
+TOUCH
 TTL
 UNLINK
 UNSUBSCRIBE
+UNWATCH
+WATCH
 ZADD
 ZCARD
 ZCOUNT
@@ -169,18 +208,7 @@ ZSCORE
 ZUNION
 ZUNIONSTORE
 
-Currently passes redis-benchmark on default settings. And at least on my test laptop running either a local redis or the go horse race....it's comparable.
-
-Is it fast? Not really. But it works.
-
 Couple caveats: I wasn't particularily careful about keeping 100% binary all the way through on some commands, so if you are storing stuff other than text you might get something unexpected.
-
-I patched up everything my current application is using (Storing zipped binaries with hget/hset in lua). Fixing it up shouldn't be a terrible stretch.
-
-Pull requests? Sure. Will I actually check this often? Probably not. Put this together to solve a particular problem and it is 'good enough'.
-
-Is the code any good? Not really. It's a mish mash of whatever I felt like doing at the time and whatever seemed to be the right way to do stuff.
-It isn't consistent with itself.
 
 It doesn't send the same error messages as a real redis server. The only bits of source I actually took from the real redis repo are the json files that describe the commands, and I used that to build the implementation classes.
 There are vestigial bits in there about key parser commands (that I see why they exist now that I put in transactions, which I won't guarantee will work exactly the same as a real redis..but it is 'close enough')

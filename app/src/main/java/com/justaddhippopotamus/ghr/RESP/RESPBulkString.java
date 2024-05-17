@@ -110,7 +110,13 @@ public class RESPBulkString extends IRESP {
                     String sha1 = Base64.getEncoder().encodeToString(md.digest(value));
                     return "RESPBulkString:" + sha1;
                 } catch (Exception e) {
+                    return "RESPBulkString: <unknown>";
+                }
 
+            }
+            for( var b : value ) {
+                if ( b < 0x20 || b > 0x7E ) {
+                    return "RESPBulkString: unprintable";
                 }
             }
         } else {

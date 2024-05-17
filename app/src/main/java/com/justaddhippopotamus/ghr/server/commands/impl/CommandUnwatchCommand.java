@@ -11,6 +11,7 @@ import com.justaddhippopotamus.ghr.server.WorkItem;
 public class CommandUnwatchCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
-        Command.BadDefaultCommandImplementation(item);
+        item.whoFor.unwatch();
+        item.whoFor.queueOK(item.order);
     }
 }

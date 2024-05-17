@@ -20,5 +20,6 @@ public class CommandRpushCommand extends ICommandImplementation {
         List<String> elements = commands.remainingElementsRequired(0);
         RedisList rl = item.getMainStorage().fetchRW(key,RedisList.class,RedisList::new);
         item.whoFor.queueInteger( rl.rpush(elements), item.order );
+        rl.unqueueAll(item.getServer());
     }
 }

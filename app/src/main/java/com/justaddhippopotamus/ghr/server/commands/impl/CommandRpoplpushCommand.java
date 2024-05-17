@@ -23,6 +23,7 @@ public class CommandRpoplpushCommand extends ICommandImplementation {
         } else {
             RedisList dl = item.getMainStorage().fetchRW(destination,RedisList.class, RedisList::new);
             item.whoFor.queueBulkString(rl.move(dl,false,true),item.order);
+            dl.unqueueAll(item.getServer());
         }
     }
 }

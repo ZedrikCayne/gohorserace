@@ -87,7 +87,7 @@ public class TypeStorage {
 
     public synchronized boolean keyExists(final String key) {
         RedisType rawFetch = inMemoryBasic.getOrDefault(key, null);
-        return !RedisType.isNullOrExpired(rawFetch);
+        return RedisType.exists(rawFetch);
     }
 
     public synchronized boolean del(final String key) {
@@ -151,6 +151,13 @@ public class TypeStorage {
         List<T> returnType = new ArrayList<>(keys.size());
         for( String key : keys ) {
             returnType.add( fetchRO(key, whichType) );
+        }
+        return returnType;
+    }
+    public synchronized <T extends RedisType> List<T> fetchRWMany(List<String> keys, Class<T> whichType, RedisGoReturn<T> f ) {
+        List<T> returnType = new ArrayList<>(keys.size());
+        for( String key : keys ) {
+            returnType.add( fetchRW(key,whichType,f) );
         }
         return returnType;
     }
@@ -342,8 +349,8 @@ public class TypeStorage {
     }
 
     public synchronized void swapdb(int a, int b) {
-        final TypeStorage ta = storages.get(a);
-        final TypeStorage tb = storages.get(b);
+        final TypeStorage ta = getStorage(a);
+        final TypeStorage tb = getStorage(b);
         synchronized (tb) {
             var temp = ta.inMemoryBasic;
             ta.inMemoryBasic = tb.inMemoryBasic;

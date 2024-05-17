@@ -2,6 +2,8 @@ package com.justaddhippopotamus.ghr.server.types;
 
 import com.justaddhippopotamus.ghr.RESP.IRESP;
 import com.justaddhippopotamus.ghr.RESP.RESPArray;
+import com.justaddhippopotamus.ghr.server.Server;
+import com.justaddhippopotamus.ghr.server.WorkItem;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +17,10 @@ public class RedisList extends RedisType {
     }
     public RedisList(InputStream is) throws IOException {
         readFrom(is);
+    }
+
+    public List<String> value() {
+        return value;
     }
     @Override
     public void writeTo(OutputStream os) throws IOException {
@@ -35,6 +41,8 @@ public class RedisList extends RedisType {
     }
 
     private LinkedList<String> value;
+
+
     public synchronized int push(String s) {
         value.addFirst(s);
         return value.size();
@@ -120,8 +128,12 @@ public class RedisList extends RedisType {
     }
 
     @Override
-    public boolean canBeReaped() {
-        return (value.isEmpty());
+    public synchronized boolean canBeReaped() {
+        return (value.isEmpty() && blocked.isEmpty());
+    }
+
+    public synchronized boolean isEmpty() {
+        return value.isEmpty();
     }
     public synchronized String move(RedisList destination, boolean leftFrom, boolean leftDestination ) {
         if( value.size() > 0 ) {
@@ -165,7 +177,8 @@ public class RedisList extends RedisType {
         return -1;
     }
 
-    public int size() {
+    @Override
+    public synchronized int size() {
         return value.size();
     }
 

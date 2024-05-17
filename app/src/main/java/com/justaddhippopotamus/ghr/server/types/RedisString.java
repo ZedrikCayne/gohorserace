@@ -622,6 +622,8 @@ public class RedisString extends RedisType {
             }
         }
 
+
+
         protected long overflowValue(long value) {
             if( signed ) {
                 if (value < 0) {
@@ -775,6 +777,10 @@ public class RedisString extends RedisType {
             rs.setLongValue(newValue,realIndex,numbits);
             return newValue;
         }
+    }
+
+    public static String normalized(RedisString that) {
+        return that==null?null:that.toString();
     }
 
     @Override

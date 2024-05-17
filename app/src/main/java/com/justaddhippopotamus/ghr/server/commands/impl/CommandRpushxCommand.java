@@ -24,6 +24,7 @@ public class CommandRpushxCommand extends ICommandImplementation {
             item.whoFor.queueInteger(0,item.order);
         } else {
             item.whoFor.queueInteger(rl.rpush(elements), item.order);
+            rl.unqueueAll(item.getServer());
         }
     }
 }

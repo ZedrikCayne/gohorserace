@@ -2,11 +2,15 @@ package com.justaddhippopotamus.ghr.server.types;
 
 import com.justaddhippopotamus.ghr.RESP.IRESP;
 import com.justaddhippopotamus.ghr.RESP.RESPInteger;
+import com.justaddhippopotamus.ghr.server.Server;
+import com.justaddhippopotamus.ghr.server.WorkItem;
 
 import javax.annotation.CheckForNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 public abstract class RedisType {
@@ -82,6 +86,9 @@ public abstract class RedisType {
         return what.accept(all);
     }
 
+    public synchronized int size() { return 0; }
+    public synchronized boolean isEmpty() { return size() != 0; }
+
     public synchronized <T extends RedisType,R> R atomicAll(List<T> all, Class<R> returnType, RedisGoMany<T,R> what) {
         return syncAll(0,all.size(),all,returnType,what);
     }
@@ -113,6 +120,10 @@ public abstract class RedisType {
         return rt == null || rt.expired();
     }
 
+    public static boolean exists(@CheckForNull final RedisType rt) {
+        return rt!=null&&!rt.expired()&&!(rt.isEmpty());
+    }
+
     public abstract IRESP wireType(IRESP.RESPVersion v);
 
     public void copyFrom(RedisType other) {
@@ -120,6 +131,12 @@ public abstract class RedisType {
         this.dirty = other.dirty;
         this.writeLocked = other.writeLocked;
     }
+
+    protected final LinkedHashSet<WorkItem> blocked = new LinkedHashSet<>();
+    public synchronized void queue(WorkItem w) { blocked.add(w); }
+    public synchronized void unqueue(WorkItem w) { blocked.remove(w); }
+    public synchronized void unqueueAll(Server s) { blocked.forEach(s::execute); blocked.clear(); }
+
 
     public abstract <T extends RedisType> T copy(Class<T> type);
 }

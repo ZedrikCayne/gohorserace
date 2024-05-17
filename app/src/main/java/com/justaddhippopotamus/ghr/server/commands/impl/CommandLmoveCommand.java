@@ -28,6 +28,7 @@ public class CommandLmoveCommand extends ICommandImplementation {
                 destinationList = item.getMainStorage().fetchRW(destination,RedisList.class, RedisList::new);
             }
             item.whoFor.queue(new RESPBulkString(sourceList.move(destinationList,LEFTFROM,LEFTTO)),item.order);
+            destinationList.unqueueAll(item.getServer());
         }
     }
 }

@@ -258,7 +258,11 @@ public class RESPArray extends IRESP {
         int len = value.size();
         if( index >= len ) throwError();
         if( limit != 0 ) {
-            if( len <= index + limit ) {
+            if( limit < 0 ) {
+                limit = (len - index) + limit;
+                if( limit < 0 ) throwError();
+            }
+            if (len <= index + limit) {
                 throwError();
             }
             len = Math.min(len, index + limit);

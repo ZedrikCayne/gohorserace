@@ -402,7 +402,8 @@ public class RedisSortedSet extends RedisType {
         }
     }
 
-    public int size() {
+    @Override
+    public synchronized int size() {
         return value.size();
     }
 

@@ -2,6 +2,7 @@ package com.justaddhippopotamus.ghr.server;
 
 import com.justaddhippopotamus.ghr.RESP.RESPArray;
 import com.justaddhippopotamus.ghr.server.commands.impl.CommandZinterCommand;
+import com.justaddhippopotamus.ghr.server.types.RedisType;
 
 import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
@@ -10,6 +11,37 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Utils {
+    public static <T extends RedisType> void setBlocking(WorkItem i, List<T> t, double timeout) {
+        synchronized(i) {
+            if (i.alreadyCompleted()) return;
+            for (var l : t) l.queue(i);
+            i.setTimeout(timeout);
+            i.whoFor.blocking(i);
+        }
+    }
+
+    public static void setBlocking(WorkItem i, RedisType t, double timeout ) {
+        synchronized(i) {
+            if (i.alreadyCompleted()) return;
+            t.queue(i);
+            i.setTimeout(timeout);
+            i.whoFor.blocking(i);
+        }
+    }
+
+    public static <T extends RedisType> void setUnblocked(WorkItem i, List<T> t) {
+        synchronized(i) {
+            for (var l : t) l.unqueue(i);
+            i.whoFor.doneBlocking(i);
+            i.order = -1;
+        }
+    }
+
+    public static void setUnblocked(WorkItem i, RedisType t) {
+        t.unqueue(i);
+        i.whoFor.doneBlocking(i);
+        i.order = -1;
+    }
 
     public static Set<String> intersection(List<Set<String>> toIntersect) {
         Set<String> a = new HashSet<>();

@@ -54,6 +54,7 @@ public class RedisSet extends RedisType {
         return value.contains(member);
     }
 
+    @Override
     public synchronized int size() {
         return value.size();
     }

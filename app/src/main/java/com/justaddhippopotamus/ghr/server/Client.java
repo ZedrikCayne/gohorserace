@@ -105,6 +105,7 @@ public class Client extends GoDog {
     }
     int id;
     public List<RESPArray> queuedStuff = new LinkedList<>();
+    public ConcurrentHashMap<WorkItem,Long> blocking = new ConcurrentHashMap<>();
     public Client(TypeStorage s) {
         authed = false;
         mySocket = null;
@@ -507,5 +508,21 @@ public class Client extends GoDog {
     }
     public TypeStorage getStorage(int destinationDb) {
         return myServer.getStorage(destinationDb);
+    }
+    public void blocking(WorkItem i) {
+        blocking.put(i,i.timeout);
+    }
+    public void doneBlocking(WorkItem i) {
+        blocking.remove(i);
+    }
+
+    private Set<String> watched = new HashSet<String>();
+
+    public void watch(List<String> keys) {
+        watched.addAll(keys);
+    }
+
+    public void unwatch() {
+        watched.clear();
     }
 }

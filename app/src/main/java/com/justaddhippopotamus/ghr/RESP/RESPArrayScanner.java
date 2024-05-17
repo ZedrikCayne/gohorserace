@@ -113,7 +113,7 @@ public class RESPArrayScanner {
 
     public List<String> remainingElementsRequired(int limit) {
         List<String> returnValue = commands.elementsFromIndexLimit(currentIndex,limit);
-        currentIndex = len;
+        currentIndex += returnValue.size();
         return returnValue;
     }
 
