@@ -76,6 +76,18 @@ public class RESPArray extends IRESP {
         return value;
     }
 
+    public static RESPArray arrayOfArraysOfSortedSetValues(List<RedisSortedSet.SetValue> list) {
+        int len = list.size();
+        RESPArray value = new RESPArray(len);
+        for( var sv : list ) {
+            RESPArray inner = new RESPArray(2);
+            inner.addString(sv.key);
+            inner.addString(Utils.doubleToStringRedisStyle(sv.score));
+            value.addRespElement(inner);
+        }
+        return value;
+    }
+
     public RESPArray(Collection<RedisType> source, IRESP.RESPVersion version) {
         value = source.stream().map( rt -> Client.getWireType(rt,version) ).collect(Collectors.toList());
     }

@@ -407,6 +407,9 @@ public class RedisSortedSet extends RedisType {
         return value.size();
     }
 
+    @Override
+    public synchronized boolean isEmpty() { return value.size() == 0; }
+
     public int count(String min, String max) {
         Compy<Double> minComp = Utils.rangeStringInclusive(min)?GTE_DOUBLE:GT_DOUBLE;
         Compy<Double> maxComp = Utils.rangeStringInclusive(max)?LTE_DOUBLE:LT_DOUBLE;
