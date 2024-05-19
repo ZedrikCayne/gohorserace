@@ -115,7 +115,7 @@ public class LuaHandler {
                     else argumentsForRedis.addRespElement(new RESPBulkString(String.valueOf(args.arg(i))));
                 }
                 if(Server.verbose)
-                    System.out.println("LUA>: " + argumentsForRedis.prettyString() );
+                    LOG.info("LUA>: " + argumentsForRedis.prettyString() );
                 try{
                     luaClient.myServer.executeBlocking( argumentsForRedis, luaClient, 0);
                 } catch (Exception e) {
@@ -133,12 +133,12 @@ public class LuaHandler {
 
                 if( response == null ) {
                     if(Server.verbose)
-                        System.out.println("LUA<: null");
+                        LOG.info("LUA<: null");
                     return NONE;
 
                 }
                 if(Server.verbose)
-                    System.out.println("LUA<: " + response.prettyString() );
+                    LOG.info("LUA<: " + response.prettyString() );
                 //Response is an IRESP...
                 return respToLua(response);
             }
@@ -225,12 +225,13 @@ public class LuaHandler {
                 sb.deleteCharAt(sb.length()-1);
             }
 
-            if(Server.verbose) System.out.println(sb.toString());
+            if(Server.verbose) LOG.info(sb.toString());
             Varargs output = script.call();
 
             //Script
             return luaToResp(output.arg1());
         });
     }
+    private static final Logger LOG = Logger.get(LuaHandler.class.getSimpleName());
 }
 //local tasksSet=KEYS[1]              -- Hash set of all tasks, indexed by task ID\nlocal taskTimeoutsSet=KEYS[2]       -- Hash set of task timeouts, indexed by task ID\nlocal pendingTaskIdsList=KEYS[3]    -- List of pending task IDs\nlocal activeTaskIdsSet=KEYS[4]      -- Sorted set of active task IDs, indexed by timeout\nlocal maxTasks=tonumber(ARGV[1])    -- Max tasks to accept\nlocal currentTime=tonumber(ARGV[2]) -- Current epoch time in milliseconds\n\nlocal acceptedTasks = {}\nwhile #acceptedTasks < maxTasks\ndo\n    local taskId = nil\n    local taskEntries = redis.call(\"zrangebyscore\", pendingTaskIdsList, \"-inf\", currentTime, \"limit\", \"0\", \"1\")\n    if #taskEntries > 0 then\n        taskId = taskEntries[1]\n        redis.call(\"zrem\", pendingTaskIdsList, taskId)\n    else\n        local taskIds = redis.call(\"zrangebyscore\", activeTaskIdsSet, \"-inf\", currentTime, \"limit\", \"0\", \"1\")\n        if #taskIds > 0 then\n            taskId = taskIds[1]\n        end\n    end\n\n    if taskId then\n        local task = redis.call(\"hget\", tasksSet, taskId)\n        local timeout = tonumber(redis.call(\"hget\", taskTimeoutsSet, taskId))\n        redis.call(\"zadd\", activeTaskIdsSet, tostring(currentTime + timeout), taskId)\n        table.insert(acceptedTasks, task)\n    else\n        break\n    end\nend\n\nreturn acceptedTasks\n

@@ -12,7 +12,6 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class Client extends GoDog {
@@ -61,8 +60,8 @@ public class Client extends GoDog {
                     }
                     StuffToSend nextToSend = myClient.stuffToSend.take();
                     if (!resetting && (nextToSend.order == 0 || nextToSend.order == orderNext) ) {
-                        if( Server.verbose )
-                            System.out.println(myClient.hashCode() + ": " + nextToSend.theData.prettyString());
+                        if( Server.verbose && nextToSend.theData != NOP)
+                            LOG.trace(myClient.hashCode() + ": reply " + nextToSend.theData.prettyString());
                         nextToSend.theData.publishTo(myStream);
                         if (nextToSend.order == orderNext)
                             ++orderNext;
@@ -137,6 +136,7 @@ public class Client extends GoDog {
                 int nextByte = myStream.read();
                 RESPArray rarray = null;
                 if( nextByte < 0 ) {
+                    LOG.trace(hashCode() + " socket closed.");
                     stop();
                 } else if ((char)nextByte == '*' ) {
                     //According to the docs, all commands are RESP Arrays.
@@ -164,6 +164,9 @@ public class Client extends GoDog {
 
 
                 if( rarray != null ) {
+                    if( Server.verbose ) {
+                        LOG.info(this.hashCode() + ": "+ rarray.prettyString());
+                    }
                     RESPArrayScanner commands = new RESPArrayScanner(rarray);
                     if( multiMode && !commands.commandIs("EXEC", "DISCARD", "RESET" ) ) {
                         queuedStuff.add(rarray);
@@ -444,10 +447,6 @@ public class Client extends GoDog {
     private InputStream myStream = null;
     private ClientWriter myWriter = null;
     public IRESP.RESPVersion clientRESPVersion = IRESP.RESPVersion.RESP2;
-    private static final Logger LOG = Logger.getLogger(Client.class.getName());
-    public Logger getLogger() {
-        return LOG;
-    }
     final BlockingQueue<StuffToSend> stuffToSend = new LinkedBlockingQueue<>();
     public static final RESPSimpleString OK = new RESPSimpleString("OK");
     public static final RESPSimpleString QUEUED = new RESPSimpleString("QUEUED");
@@ -525,4 +524,6 @@ public class Client extends GoDog {
     public void unwatch() {
         watched.clear();
     }
+
+    private static final Logger LOG = Logger.get(Client.class.getSimpleName());
 }

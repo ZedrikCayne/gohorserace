@@ -1,9 +1,10 @@
 package com.justaddhippopotamus.ghr.server;
 
+import com.justaddhippopotamus.ghr.server.Logger;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.logging.Logger;
 
 public class Listener extends GoDog {
     private static int clientid = 1;
@@ -13,13 +14,15 @@ public class Listener extends GoDog {
         Client newClient = null;
         while( running ) {
             try {
-                System.out.println("Starting listener on port " + portNumber + ".");
+                LOG.info("Starting listener on port " + portNumber + ".");
                 mainListener = new ServerSocket(portNumber);
                 while (running) {
                     Socket clientSocket = mainListener.accept();
 
                     clientSocket.setKeepAlive(true);
                     clientSocket.setSoLinger(true,0);
+                    clientSocket.setReceiveBufferSize(65536);
+                    clientSocket.setSendBufferSize(65536);
                     newClient = new Client( clientSocket, myServer, clientid, myServer.password == null, 0 );
                     ++clientid;
                     myServer.addClient(newClient);
@@ -59,4 +62,6 @@ public class Listener extends GoDog {
     ServerSocket mainListener;
     Thread myThread;
     Server myServer;
+
+    private static final Logger LOG = Logger.get(Listener.class.getSimpleName());
 }

@@ -30,7 +30,7 @@ public class Server extends GoDog {
                     if( workItem.alreadyCompleted() )
                         continue;
                     if(Server.verbose)
-                        System.out.println(workItem.toString());
+                        LOG.trace(myThread.getId() + " EXECUTING: " + workItem.toString());
                     idling = false;
                     myServer.worker_execute(workItem);
                 } catch (InterruptedException e) {
@@ -51,7 +51,7 @@ public class Server extends GoDog {
     public boolean hasPassword() {
         return password != null;
     }
-    public int startingExecutors = 5;
+    public final int numberOfExecutors;
 
     public boolean passwordValid(String username, String password) {
 
@@ -64,10 +64,11 @@ public class Server extends GoDog {
         return password==null && this.password == null;
     }
 
-    public Server(String file, int port, String password) {
+    public Server(String file, int port, String password, int numWorkers ) {
         this.dbFile = file;
         this.port = port;
         this.password = password;
+        this.numberOfExecutors = numWorkers;
     }
 
     BlockingQueue<WorkItem> workItemQueue = new LinkedBlockingQueue<>();
@@ -155,7 +156,7 @@ public class Server extends GoDog {
         mainListener.goDogGo();
 
         //Server Executors. (Grab stuff from the work queue)
-        for(int i = 0; i < startingExecutors; ++i ) {
+        for(int i = 0; i < numberOfExecutors; ++i ) {
             ServerExecutor e = new ServerExecutor(this);
             e.goDogGo();
             serverExecutors.add(e);
@@ -168,8 +169,8 @@ public class Server extends GoDog {
                 for( ServerExecutor s : serverExecutors ) {
                     if(s.isBusy())++count;
                 }
-                //System.out.println(count + " busy");
-                //System.out.println(workItemQueue.size() + " queue depth");
+                //LOG.trace(count + " busy");
+                //LOG.trace(workItemQueue.size() + " queue depth");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -217,4 +218,5 @@ public class Server extends GoDog {
     }
 
     public static volatile boolean verbose = false;
+    public static final Logger LOG = Logger.get(Server.class.getSimpleName());
 }

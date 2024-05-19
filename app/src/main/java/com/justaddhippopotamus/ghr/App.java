@@ -3,6 +3,7 @@
  */
 package com.justaddhippopotamus.ghr;
 
+import com.justaddhippopotamus.ghr.server.Logger;
 import com.justaddhippopotamus.ghr.server.Server;
 import com.justaddhippopotamus.ghr.server.commands.ServerCommands;
 
@@ -29,10 +30,15 @@ public class App {
         System.out.println("    --port <portnum> (default is 6379)");
         System.out.println("    --file <dbfilename> (by default it is dbio.respdb");
         System.out.println("    --memoryOnly  (No saving or reading a db..");
+        System.out.println("    --workers <number> (Number of worker threads, default 5)");
         System.out.println("    --license (prints the license)");
         System.out.println("    --help/-?/-h (This help)");
         System.out.println("    --password <password> (Default is none)");
-        System.out.println("    --verbose (Verbose operation...spammy)");
+        System.out.println("    --verbose (Verbose operation...spammy) (Adds INFO for all commands and sets default");
+        System.out.println("                                            default logging level to INFO");
+        System.out.println("    --logFilter <class> <level> (Level is DISABLE, TRACE, INFO, WARN, ERROR, EXCEPTION");
+        System.out.println("    --logLevel <level> (Default log level, default is INFO)");
+        System.out.println("    --noBanner    (Do not print banner.)");
         System.out.println();
         System.out.println("Go Horse Race is a java implementation of redis. Lua included not lua functions");
         System.out.println("but EVAL and EVALSHA are supported. (Using LuaJ, which is apparently lua 5.2)");
@@ -43,7 +49,7 @@ public class App {
         System.out.println("nice error message saying that they are not supported. Adding them is left as an");
         System.out.println("exercise for the listener.");
         System.out.println("");
-        System.out.println("This has not been thoroughly tested. Be warned.");
+        System.out.println("To make it behave just like redis, set number of workers to 1.");
     }
 
     public static void printBanner() {
@@ -56,7 +62,6 @@ public class App {
     }
     public static void main(String[] args) {
         running = true;
-        printBanner();
 
         ArrayList<String> argsList = new ArrayList<>();
         for( String s : args ) {
@@ -66,6 +71,15 @@ public class App {
         while( !argsList.isEmpty() ) {
             String currentArg = argsList.remove(0);
             switch(currentArg) {
+                case "--logLevel":
+                    String logLevel = argsList.remove(0);
+                    Logger.setDefaultLogLevel(logLevel);
+                    break;
+                case "--logFilter":
+                    String logWhat = argsList.remove(0);
+                    String logFilter = argsList.remove(0);
+                    Logger.setLogLevelFor(logWhat, logFilter);
+                    break;
                 case "--password":
                     password = argsList.remove(0);
                     break;
@@ -84,6 +98,10 @@ public class App {
                 case "-v":
                 case "--verbose":
                     verbose = true;
+                    Logger.setDefaultLogLevel(Logger.LogLevel.LOG_INFO);
+                    break;
+                case "--workers":
+                    numWorkers = Integer.parseInt(argsList.remove(0));
                     break;
                 case "--license":
                     printLicense();
@@ -92,15 +110,20 @@ public class App {
                 case "--memoryOnly":
                     dbFile = null;
                     break;
+                case "--noBanner":
+                    printBanner = false;
+                    break;
                 default:
+                    printBanner();
                     printHelp();
                     System.exit(-1);
                     return;
             }
         }
+        if( printBanner ) printBanner();
 
 
-        Server newServer = new Server(dbFile, port, password);
+        Server newServer = new Server(dbFile, port, password, numWorkers);
         Server.verbose = verbose;
         newServer.goDogGo();
 
@@ -129,11 +152,13 @@ public class App {
         System.exit(0);
     }
 
+    public static boolean printBanner = true;
     public static boolean verbose = false;
     public static boolean running = false;
     public static boolean killing = false;
 
     public static int port = 6379;
+    public static int numWorkers = 1;
     public static String password = null;
     public static String dbFile = "dbio.respdb";
 

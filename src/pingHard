@@ -1,0 +1,1 @@
+nc -w 9 localhost 6379 < pingHard.bin > pongit 

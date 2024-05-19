@@ -2,6 +2,7 @@ package com.justaddhippopotamus.ghr.server.types;
 
 import com.justaddhippopotamus.ghr.RESP.IRESP;
 import com.justaddhippopotamus.ghr.RESP.RESPArray;
+import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
 import com.justaddhippopotamus.ghr.server.Server;
 import com.justaddhippopotamus.ghr.server.WorkItem;
 
@@ -199,15 +200,23 @@ public class RedisList extends RedisType {
         return that == null || that.value.size() == 0;
     }
 
-    public synchronized List<String> range(int start, int stop) {
+    public synchronized RESPArray range(int start, int stop) {
         int len = value.size();
         int realStart = realIndex(start,len);
         int realStop = realIndex(stop,len);
         ++realStop;//Increment because subList does not include the 'last' index
         if(realStart < 0) realStart = 0;
         if(realStop > len) realStop = len;
-        if( realStart >= realStop ) return new ArrayList<>();
-        return new ArrayList<>(value.subList(realStart,realStop));
+        if( realStart >= realStop ) return new RESPArray();
+        Iterator<String> iter = value.iterator();
+        RESPArray returnValue = new RESPArray(realStop - realStart);
+        for( int i = 0; i < realStop; ++i ) {
+            String s = iter.next();
+            if( i < realStart ) continue;
+            returnValue.addString(s);
+        }
+        return returnValue;
+        //return new ArrayList<>(value.subList(realStart,realStop));
     }
 
     public synchronized int remove(String what, int count) {

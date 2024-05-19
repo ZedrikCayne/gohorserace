@@ -9,7 +9,6 @@ import com.justaddhippopotamus.ghr.server.types.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class TypeStorage {
@@ -206,7 +205,7 @@ public class TypeStorage {
 
     private void loadFile() {
         if( mainStorageFile == null ) {
-            System.out.println("DB not read, running in memory only mode.");
+            LOG.warn("DB not read, running in memory only mode.");
             return;
         }
         try {
@@ -228,12 +227,12 @@ public class TypeStorage {
             fis.close();
         } catch (FileNotFoundException e) {
             //File not found on startup, we're probably ok?
-            System.out.println(mainStorageFile + " not found...new startup.");
+            LOG.warn(mainStorageFile + " not found...new startup.");
             inMemoryBasic = new ConcurrentHashMap<>(initialSize);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load main DB.", e);
         }
-        System.out.println("Done reading db");
+        LOG.info("Done reading db");
     }
 
     private void writeTo(OutputStream fos) throws IOException {
@@ -248,7 +247,7 @@ public class TypeStorage {
 
     private void writeFile() {
         if( mainStorageFile == null ) {
-            System.out.println("Not saving the DB. Memory only requested.");
+            LOG.info("Not saving the DB. Memory only requested.");
             return;
         }
         try {
@@ -263,11 +262,11 @@ public class TypeStorage {
 
             fos.close();
         } catch(FileNotFoundException e) {
-            System.out.println("Could not write to the output db..about to lose some stuff.");
+            LOG.error("Could not write to the output db..about to lose some stuff.");
         } catch(IOException e) {
-            System.out.println("Could not write to the output db..about to lose some stuff.");
+            LOG.error("Could not write to the output db..about to lose some stuff.");
         }
-        System.out.println("Done writing file.");
+        LOG.info("Done writing file.");
     }
     public TypeStorage(String mainStorageFile, int initialSize) {
         this.initialSize = initialSize;
@@ -362,4 +361,5 @@ public class TypeStorage {
         return inMemoryBasic.size();
     }
 
+    private static final Logger LOG = Logger.get(TypeStorage.class.getSimpleName());
 }

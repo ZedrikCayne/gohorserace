@@ -8,7 +8,7 @@ public abstract class GoDog implements Runnable {
             myThread.start();
         }
         else {
-            System.out.println("Tried to start a " + getClass().getSimpleName() + " twice.");
+            LOG.warn("Tried to start a " + getClass().getSimpleName() + " twice.");
         }
         return myThread;
     }
@@ -21,10 +21,10 @@ public abstract class GoDog implements Runnable {
         boolean wasLoopDone = mainLoopDone;
         mainLoopDone = true;
         if( running ) {
-            System.out.println("Main loop of " + getClass().getSimpleName() + " thinks it is still running when it got to the end of main loop.");
+            LOG.warn("Main loop of " + getClass().getSimpleName() + " thinks it is still running when it got to the end of main loop.");
         }
         if( wasLoopDone ) {
-            System.out.println("Main loop already said it was done.");
+            LOG.warn("Main loop already said it was done.");
         }
         return wasLoopDone;
     }
@@ -43,4 +43,6 @@ public abstract class GoDog implements Runnable {
     public Thread myThread = null;
     public boolean running = false;
     public boolean mainLoopDone = false;
+
+    private static Logger LOG = Logger.get(Logger.class.getSimpleName());
 }
