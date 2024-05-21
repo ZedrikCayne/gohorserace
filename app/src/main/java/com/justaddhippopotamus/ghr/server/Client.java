@@ -4,9 +4,7 @@ import com.justaddhippopotamus.ghr.RESP.*;
 import com.justaddhippopotamus.ghr.server.types.RedisString;
 import com.justaddhippopotamus.ghr.server.types.RedisType;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -39,7 +37,7 @@ public class Client extends GoDog {
         public void run() {
             super.run();
             try {
-                myStream = myClient.mySocket.getOutputStream();
+                myStream = new BufferedOutputStream(myClient.mySocket.getOutputStream());
             } catch (IOException e) {
                 running = false;
             }
@@ -63,6 +61,7 @@ public class Client extends GoDog {
                         if( Server.verbose && nextToSend.theData != NOP)
                             LOG.trace(myClient.hashCode() + ": reply " + nextToSend.theData.prettyString());
                         nextToSend.theData.publishTo(myStream);
+                        if( myStream != null )  myStream.flush();
                         if (nextToSend.order == orderNext)
                             ++orderNext;
                     } else {
@@ -126,7 +125,7 @@ public class Client extends GoDog {
         myWriter = new ClientWriter(this);
         myWriter.goDogGo();
         try{
-            myStream = mySocket.getInputStream();
+            myStream = new BufferedInputStream(mySocket.getInputStream());
         } catch (Exception e) {
             stopIfNecessary();
         }

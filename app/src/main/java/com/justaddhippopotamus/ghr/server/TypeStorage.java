@@ -250,6 +250,7 @@ public class TypeStorage {
             LOG.info("Not saving the DB. Memory only requested.");
             return;
         }
+        LOG.log("Writing db.");
         try {
             FileOutputStream fos = new FileOutputStream(mainStorageFile);
             fos.write( 'R' ); fos.write( 'E' ); fos.write( 'S' );
@@ -266,7 +267,7 @@ public class TypeStorage {
         } catch(IOException e) {
             LOG.error("Could not write to the output db..about to lose some stuff.");
         }
-        LOG.info("Done writing file.");
+        LOG.log("Done writing file.");
     }
     public TypeStorage(String mainStorageFile, int initialSize) {
         this.initialSize = initialSize;
