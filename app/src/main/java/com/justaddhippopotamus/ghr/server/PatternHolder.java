@@ -20,6 +20,10 @@ public class PatternHolder {
         psc.partOfPattern(this);
     }
 
+    public synchronized int numClients() {
+        return clients.size();
+    }
+
     public synchronized void removeChannel(PubSubChannel psc) {
         channels.remove(psc);
         psc.removeFromPattern(this);

@@ -11,6 +11,14 @@ public class ChannelManager {
     private static PatternHolder RESET = new PatternHolder("RESET");
     private static PubSubChannel RESET_PSC = new PubSubChannel("RESET",null);
 
+    public synchronized int numPatterns() {
+        int total = 0;
+        for (PatternHolder patternHolder : patterns.values()) {
+            total += patternHolder.numClients();
+        }
+        return total;
+    }
+
     synchronized public PatternHolder getPattern(String pattern) {
         if( pattern.compareTo("RESET") == 0 ) return RESET;
         if( !patterns.containsKey(pattern) ) {
@@ -43,7 +51,7 @@ public class ChannelManager {
 
     public List<String> channelNames() {
         List<String> returnValue = new ArrayList<>();
-        returnValue.addAll(channels.keySet());
+        channels.forEach((k,v)-> { if(!v.hasNoClients()) returnValue.add(k);});
         return returnValue;
     }
 }

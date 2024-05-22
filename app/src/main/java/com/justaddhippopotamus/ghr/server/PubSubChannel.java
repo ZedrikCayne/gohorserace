@@ -56,8 +56,20 @@ public class PubSubChannel extends GoDog {
 
     public synchronized void unsubscribe(Client who) {
         clients.remove(who);
-        if( clients.size() == 0 && patterns.size() == 0 )
+        if( canBeRemoved() )
             stop();
+    }
+
+    public synchronized boolean canBeRemoved() {
+        return( clients.size() == 0 && patterns.size() == 0 );
+    }
+
+    public synchronized boolean hasNoClients() {
+        return clients.isEmpty();
+    }
+
+    public synchronized int numClients() {
+        return clients.size();
     }
 
     public synchronized void partOfPattern(PatternHolder ph) {

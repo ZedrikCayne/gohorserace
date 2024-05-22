@@ -25,16 +25,26 @@ public class CommandPubsubCommand extends ICommandImplementation {
         }
     }
 
+    private void numsub(WorkItem item, RESPArrayScanner commands) {
+        List<String> channels = commands.remainingElementsRequired(0);
+        RESPArray returnValue = new RESPArray(channels.size() * 2);
+        for(var channel:channels) {
+            returnValue.addString(channel);
+            returnValue.addInteger(item.getServer().channelManager().getChannel(channel).numClients());
+        }
+        item.whoFor.queue(returnValue,item.order);
+    }
+
     private void numpat(WorkItem item, RESPArrayScanner scanner) {
-        item.whoFor.queueOK(item.order);
+        item.whoFor.queueInteger(item.getServer().channelManager().numPatterns(),item.order);
     }
 
     private void shardchannels(WorkItem item, RESPArrayScanner scanner) {
-        item.whoFor.queueOK(item.order);
+        item.whoFor.queueEmptyArray(item.order);
     }
 
     private void shardnumsub(WorkItem item, RESPArrayScanner scanner) {
-        item.whoFor.queueOK(item.order);
+        item.whoFor.queueInteger(0, item.order);
     }
 
     @Override
@@ -43,6 +53,9 @@ public class CommandPubsubCommand extends ICommandImplementation {
         switch( commands.subcommand() ) {
             case "CHANNELS":
                 channels(item,commands);
+                break;
+            case "NUMSUB":
+                numsub(item,commands);
                 break;
             case "NUMPAT":
                 numpat(item,commands);
