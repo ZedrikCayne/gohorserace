@@ -17,10 +17,10 @@ public class CommandLinsertCommand extends ICommandImplementation {
         final RESPArrayScanner commands = item.scanner();
         String key = commands.key();
         boolean BEFORE = commands.argIsRequired("AFTER","BEFORE");
-        String pivot = commands.string();
-        String what = commands.string();
+        var pivot = commands.bulkString();
+        var what = commands.bulkString();
         commands.errorOnRemains();
-        RedisList rl = item.getMainStorage().fetchRW(key,RedisList.class, () -> new RedisList() );
+        RedisList rl = item.getMainStorage().fetchRW(key,RedisList.class,RedisList::new);
         item.whoFor.queueInteger(rl.insert(BEFORE,pivot,what),item.order);
     }
 }

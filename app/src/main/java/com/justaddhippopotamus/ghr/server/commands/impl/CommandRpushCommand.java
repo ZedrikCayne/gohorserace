@@ -2,6 +2,7 @@
 package com.justaddhippopotamus.ghr.server.commands.impl;
 
 import com.justaddhippopotamus.ghr.RESP.RESPArrayScanner;
+import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
 import com.justaddhippopotamus.ghr.server.ICommandImplementation;
 import com.justaddhippopotamus.ghr.server.WorkItem;
 import com.justaddhippopotamus.ghr.server.types.RedisList;
@@ -17,7 +18,7 @@ public class CommandRpushCommand extends ICommandImplementation {
         //RPUSH key element [element ...]
         final RESPArrayScanner commands = item.scanner();
         String key = commands.key();
-        List<String> elements = commands.remainingElementsRequired(0);
+        List<RESPBulkString> elements = commands.remainingBulkStringsRequired(0);
         RedisList rl = item.getMainStorage().fetchRW(key,RedisList.class,RedisList::new);
         item.whoFor.queueInteger( rl.rpush(elements), item.order );
         rl.unqueueAll(item.getServer());

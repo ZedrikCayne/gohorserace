@@ -25,11 +25,11 @@ public class CommandSrandmemberCommand extends ICommandImplementation {
             if( hasCount ) item.whoFor.queueEmptyArray(item.order);
             else item.whoFor.queueNullBulkString(item.order);
         } else {
-            List<String> returnValue = rs.rand(count);
+            var returnValue = rs.rand(count);
             if( hasCount ) item.whoFor.queue(returnValue,item.order);
             else {
                 if(returnValue.isEmpty()) item.whoFor.queueNullBulkString(item.order);
-                else item.whoFor.queueBulkString(returnValue.get(0),item.order);
+                else item.whoFor.queue(returnValue.get(0),item.order);
             }
         }
     }

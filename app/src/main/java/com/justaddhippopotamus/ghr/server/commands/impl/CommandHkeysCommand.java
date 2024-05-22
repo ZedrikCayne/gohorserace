@@ -20,7 +20,7 @@ public class CommandHkeysCommand extends ICommandImplementation {
         if( rh == null ) {
             item.whoFor.queueEmptyArray(item.order);
         } else {
-            item.whoFor.queue(rh.keys(),item.order);
+            item.whoFor.queueStrings(rh.keys(),item.order);
         }
     }
 }

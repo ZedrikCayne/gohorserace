@@ -28,7 +28,7 @@ public class CommandBrpoplpushCommand extends ICommandImplementation {
                 return;
             }
             if( !sourceList.isEmpty() ) {
-                item.whoFor.queueBulkString(sourceList.move(destinationList,false,true),item.order);
+                item.whoFor.queue(sourceList.move(destinationList,false,true),item.order);
                 Utils.setUnblocked(item,l);
                 return;
             }

@@ -2,6 +2,7 @@
 package com.justaddhippopotamus.ghr.server.commands.impl;
 
 import com.justaddhippopotamus.ghr.RESP.RESPArrayScanner;
+import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
 import com.justaddhippopotamus.ghr.server.Client;
 import com.justaddhippopotamus.ghr.server.ICommandImplementation;
 import com.justaddhippopotamus.ghr.server.Command;
@@ -30,17 +31,17 @@ public class CommandSinterCommand extends ICommandImplementation {
             return new RedisSet();
         allSets.sort((a,b)->Integer.compare(a.getSet().size(),b.getSet().size()));
         return RedisType.atomicAllStatic(allSets, RedisSet.class, all -> {
-            Set<String> output = new HashSet<>();
+            Set<RESPBulkString> output = new HashSet<>();
             output.addAll( all.get(0).getSet() );
             int len = all.size();
-            Set<String> stuffToRemove  = new HashSet<>();
+            Set<RESPBulkString> stuffToRemove  = new HashSet<>();
             for( int i = 1; i < len; ++i ) {
-                Set<String> currentSet = all.get(i).getSet();
-                for (String s : output) {
+                var currentSet = all.get(i).getSet();
+                for (var s : output) {
                     if (!currentSet.contains(s))
                         stuffToRemove.add(s);
                 }
-                for (String s : stuffToRemove)
+                for (var s : stuffToRemove)
                     output.remove(s);
                 if (output.isEmpty())
                     break;

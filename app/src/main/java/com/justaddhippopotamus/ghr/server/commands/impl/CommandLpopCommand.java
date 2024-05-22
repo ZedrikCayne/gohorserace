@@ -32,7 +32,7 @@ public class CommandLpopCommand extends ICommandImplementation {
                 if (hasCount) {
                     item.whoFor.queue(rl.pop(count),item.order);
                 } else {
-                    item.whoFor.queueBulkString(rl.pop(),item.order);
+                    item.whoFor.queue(rl.pop(),item.order);
                 }
             }
         });

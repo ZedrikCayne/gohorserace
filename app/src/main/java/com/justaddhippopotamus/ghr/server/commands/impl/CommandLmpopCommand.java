@@ -29,12 +29,12 @@ public class CommandLmpopCommand extends ICommandImplementation {
         for( String key : keys ) {
             RedisList rl = item.getMainStorage().fetchRO(key, RedisList.class);
             if( !RedisList.isNullOrEmpty(rl) ) {
-                List<String> returnValue = LEFT?rl.pop(count):rl.rpop(count);
+                var returnValue = LEFT?rl.pop(count):rl.rpop(count);
                 if( returnValue == null || returnValue.isEmpty() )
                     continue;
                 RESPArray ra = new RESPArray();
                 ra.addRespElement(new RESPBulkString(key));
-                ra.addRespElement(new RESPArray(returnValue));
+                ra.addRespElement(RESPArray.RESPArrayFromCollectionOfBulkStrings(returnValue));
                 item.whoFor.queue(ra, item.order);
                 return;
             }

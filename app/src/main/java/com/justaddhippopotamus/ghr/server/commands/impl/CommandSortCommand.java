@@ -3,6 +3,7 @@ package com.justaddhippopotamus.ghr.server.commands.impl;
 
 import com.justaddhippopotamus.ghr.RESP.RESPArray;
 import com.justaddhippopotamus.ghr.RESP.RESPArrayScanner;
+import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
 import com.justaddhippopotamus.ghr.server.*;
 import com.justaddhippopotamus.ghr.server.types.*;
 
@@ -107,11 +108,11 @@ public class CommandSortCommand extends ICommandImplementation {
         toConvert.atomic( t -> {
             if( toConvert instanceof RedisList ) {
                 RedisList rl = (RedisList)t;
-                List<String> values = rl.value();
-                values.forEach(v -> returnValue.add(sortableFor(storage,v,null,keyPart,elementPart,alpha,comparator)));
+                List<RESPBulkString> values = rl.value();
+                values.forEach(v -> returnValue.add(sortableFor(storage,v.toString(),null,keyPart,elementPart,alpha,comparator)));
             } else if( toConvert instanceof RedisSet ) {
                 RedisSet rs = (RedisSet)t;
-                rs.keys().forEach(v->returnValue.add(sortableFor(storage,v,null,keyPart,elementPart,alpha,comparator)));
+                rs.keys().forEach(v->returnValue.add(sortableFor(storage,v.toString(),null,keyPart,elementPart,alpha,comparator)));
             } else if( toConvert instanceof RedisSortedSet ) {
                 RedisSortedSet rss = (RedisSortedSet)t;
                 rss.getSortedValues().forEach(v->returnValue.add(sortableFor(storage,v.key,v.score,keyPart,elementPart,alpha,comparator)));

@@ -8,9 +8,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.Base64;
 
-public class RESPBulkString extends IRESP {
+public class RESPBulkString extends IRESP implements Comparable<RESPBulkString> {
     @Override
     public boolean publishTo(OutputStream out) throws java.io.IOException {
         out.write(prefix);
@@ -133,7 +134,27 @@ public class RESPBulkString extends IRESP {
             return super.toString();
         }
     }
+
+    public RESPBulkString toBulkString() { return this;}
+
+    @Override
+    public boolean equals(Object o) {
+        if( (o instanceof RESPBulkString) ) return compareTo((RESPBulkString)o) == 0;
+        if( (o instanceof String) ) return Arrays.compare(((String)o).getBytes(Server.CHARSET),value) == 0;
+        return false;
+    }
+
+    @Override
+    public int compareTo(RESPBulkString other) {
+        return Arrays.compare(value,other.value);
+    }
+
+    @Override
+    public int hashCode(){
+        return Arrays.hashCode(value);
+    }
     public byte [] value = null;
+
 
     public static final char prefix = '$';
 }

@@ -18,7 +18,7 @@ public class CommandLpushxCommand extends ICommandImplementation {
     public void runCommand(WorkItem item) {
         final RESPArrayScanner commands = item.scanner();
         String key = commands.key();
-        List<String> elements = commands.remainingElementsRequired(0);
+        var elements = commands.remainingBulkStringsRequired(0);
         RedisList rl = item.getMainStorage().fetchRW(key, RedisList.class);
         if( rl != null )
             item.whoFor.queueInteger(rl.push(elements),item.order);

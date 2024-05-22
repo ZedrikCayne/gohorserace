@@ -3,6 +3,7 @@ package com.justaddhippopotamus.ghr.server.commands.impl;
 
 import com.justaddhippopotamus.ghr.RESP.RESPArray;
 import com.justaddhippopotamus.ghr.RESP.RESPArrayScanner;
+import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
 import com.justaddhippopotamus.ghr.server.ICommandImplementation;
 import com.justaddhippopotamus.ghr.server.WorkItem;
 import com.justaddhippopotamus.ghr.server.types.RedisList;
@@ -29,11 +30,11 @@ public class CommandRpopCommand extends ICommandImplementation {
         if( rl == null ) {
             item.whoFor.queueNullBulkString(item.order);
         } else {
-            List<String> rv = rl.rpop(count);
+            List<RESPBulkString> rv = rl.rpop(count);
             if( hasCount ) {
                 item.whoFor.queue(rv,item.order);
             } else {
-                item.whoFor.queueBulkString(rv.get(0),item.order);
+                item.whoFor.queue(rv.get(0),item.order);
             }
         }
     }

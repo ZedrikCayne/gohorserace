@@ -44,7 +44,7 @@ public class CommandZrandmemberCommand extends ICommandImplementation {
                 if( WITHSCORES )
                     item.whoFor.queue(RESPArray.fromListOfSortedSetValues(sv),item.order);
                 else
-                    item.whoFor.queue(sv.stream().map(x->x.key).collect(Collectors.toList()), item.order);
+                    item.whoFor.queueStrings(sv.stream().map(x->x.key).collect(Collectors.toList()), item.order);
             } else {
                 item.whoFor.queue(new RESPBulkString(sv.get(0).key),item.order);
             }

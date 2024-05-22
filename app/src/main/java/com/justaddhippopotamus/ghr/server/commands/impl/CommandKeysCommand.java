@@ -13,6 +13,6 @@ public class CommandKeysCommand extends ICommandImplementation {
     public void runCommand(WorkItem item) {
         String glob = item.what.stringAt(1);
         Set<String> matchedKeys = item.getMainStorage().keys(glob);
-        item.whoFor.queue(matchedKeys,item.order);
+        item.whoFor.queueStrings(matchedKeys,item.order);
     }
 }

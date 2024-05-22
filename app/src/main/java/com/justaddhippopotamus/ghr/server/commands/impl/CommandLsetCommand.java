@@ -16,7 +16,7 @@ public class CommandLsetCommand extends ICommandImplementation {
         final RESPArrayScanner commands = item.scanner();
         String key = commands.key();
         int index = commands.takeInt();
-        String element = commands.string();
+        var element = commands.bulkString();
         commands.errorOnRemains();
 
         RedisList rl = item.getMainStorage().fetchRO(key, RedisList.class);

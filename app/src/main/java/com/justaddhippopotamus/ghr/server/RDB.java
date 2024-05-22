@@ -1,5 +1,6 @@
 package com.justaddhippopotamus.ghr.server;
 
+import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
 import com.justaddhippopotamus.ghr.server.types.*;
 
 import java.io.IOException;
@@ -135,14 +136,14 @@ public class RDB {
                 long len = loadLength(is,null);
                 RedisList returnList = new RedisList();
                 while(len-->0) {
-                    returnList.rpush(loadJavaString(is));
+                    returnList.rpush(loadBulkString(is));
                 }
                 return returnList;
             case RDB_TYPE_SET:
                 len = loadLength(is,null);
                 RedisSet returnSet = new RedisSet();
                 while(len-->0) {
-                    returnSet.add(loadJavaString(is));
+                    returnSet.add(loadBulkString(is));
                 }
                 return returnSet;
             case RDB_TYPE_ZSET:
@@ -236,6 +237,9 @@ public class RDB {
         return String.valueOf(integerValue).getBytes(Server.CHARSET);
     }
 
+    private static RESPBulkString loadBulkString(InputStream is) throws IOException {
+        return new RESPBulkString(loadString(is));
+    }
     private static String loadJavaString(InputStream is) throws IOException {
         return new String(loadString(is),Server.CHARSET);
     }

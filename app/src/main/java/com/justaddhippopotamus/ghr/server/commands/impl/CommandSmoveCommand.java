@@ -16,10 +16,10 @@ public class CommandSmoveCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
         //SMOVE source destination member
-        RESPArrayScanner commands = item.scanner();
-        String source = commands.key();
-        String destination = commands.key();
-        String member = commands.string();
+        var commands = item.scanner();
+        var source = commands.key();
+        var destination = commands.key();
+        var member = commands.bulkString();
         RedisSet src = item.getMainStorage().fetchRW(source,RedisSet.class);
         if( src == null ) {
             item.whoFor.queueInteger(0,item.order);

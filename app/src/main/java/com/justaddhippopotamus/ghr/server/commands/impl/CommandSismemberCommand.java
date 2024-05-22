@@ -15,7 +15,7 @@ public class CommandSismemberCommand extends ICommandImplementation {
     public void runCommand(WorkItem item) {
         RESPArrayScanner commands = item.scanner();
         String key = commands.key();
-        String element = commands.string();
+        var element = commands.bulkString();
         commands.errorOnRemains();
         RedisSet rs = item.getMainStorage().fetchRO(key,RedisSet.class);
         if( rs == null ) {

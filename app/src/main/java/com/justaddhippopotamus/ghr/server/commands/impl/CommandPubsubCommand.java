@@ -19,9 +19,9 @@ public class CommandPubsubCommand extends ICommandImplementation {
         List<String> channels = item.getServer().channelManager().channelNames();
         if( commands.hasNext() ) {
             String pattern = commands.string();
-            item.whoFor.queue(Utils.getMatches(channels,pattern),item.order);
+            item.whoFor.queueStrings(Utils.getMatches(channels,pattern),item.order);
         } else {
-            item.whoFor.queue(item.getServer().channelManager().channelNames(),item.order);
+            item.whoFor.queueStrings(item.getServer().channelManager().channelNames(),item.order);
         }
     }
 

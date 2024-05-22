@@ -36,7 +36,7 @@ public class CommandBlmpopCommand extends ICommandImplementation {
                 if( !l.isEmpty() ) {
                     RESPArray queueValue = new RESPArray(2);
                     queueValue.addString( keys.get(index));
-                    queueValue.addRespElement( new RESPArray(LEFT?l.pop(count):l.rpop(count)));
+                    queueValue.addRespElement( RESPArray.RESPArrayFromCollectionOfBulkStrings(LEFT?l.pop(count):l.rpop(count)));
                     item.whoFor.queue(queueValue,item.order);
                     Utils.setUnblocked(item,all);
                     return false;

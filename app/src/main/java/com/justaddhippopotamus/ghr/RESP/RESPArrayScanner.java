@@ -111,6 +111,12 @@ public class RESPArrayScanner {
 
     public void errorOnRemains() { if( hasNext() ) throwError(); }
 
+    public List<RESPBulkString> remainingBulkStringsRequired(int limit) {
+        List<RESPBulkString> returnValue = commands.bulkStringsFromIndexLimit(currentIndex,limit);
+        currentIndex += returnValue.size();
+        return returnValue;
+    }
+
     public List<String> remainingElementsRequired(int limit) {
         List<String> returnValue = commands.elementsFromIndexLimit(currentIndex,limit);
         currentIndex += returnValue.size();

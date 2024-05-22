@@ -69,7 +69,7 @@ public class CommandZrangeCommand extends ICommandImplementation {
                 client.getMainStorage().store(storeTo, new RedisSortedSet(returnValue));
                 client.queueInteger(returnValue.size()/2,order);
             } else {
-                client.queue( returnValue,order );
+                client.queueStrings( returnValue,order );
             }
         }
     }

@@ -89,6 +89,7 @@ public abstract class IRESP {
     public String toString() {
         return getClass().getSimpleName();
     }
+    public RESPBulkString toBulkString() { return new RESPBulkString(toString());}
     public static final int CR = 13;
     public static final int LF = 10;
 

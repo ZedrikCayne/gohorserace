@@ -2,6 +2,7 @@ package com.justaddhippopotamus.ghr.server.types;
 
 import com.justaddhippopotamus.ghr.RESP.IRESP;
 import com.justaddhippopotamus.ghr.RESP.RESPArray;
+import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
 import com.justaddhippopotamus.ghr.RESP.RESPMap;
 import com.justaddhippopotamus.ghr.server.Utils;
 import org.checkerframework.checker.units.qual.A;
@@ -165,12 +166,12 @@ public class RedisSortedSet extends RedisType {
         return returnValue;
     }
 
-    public synchronized List<String> toArray(boolean WITHSCORES) {
-        List<String> returnValue = new ArrayList<>(size() * (WITHSCORES ? 2 : 1));
+    public synchronized List<RESPBulkString> toArray(boolean WITHSCORES) {
+        List<RESPBulkString> returnValue = new ArrayList<>(size() * (WITHSCORES ? 2 : 1));
         for (RedisSortedSet.SetValue sortedValue : sortedValue ) {
-            returnValue.add(sortedValue.key);
+            returnValue.add(new RESPBulkString(sortedValue.key));
             if (WITHSCORES) {
-                returnValue.add(Utils.doubleToStringRedisStyle(sortedValue.score));
+                returnValue.add(new RESPBulkString(Utils.doubleToStringRedisStyle(sortedValue.score)));
             }
         }
         return returnValue;

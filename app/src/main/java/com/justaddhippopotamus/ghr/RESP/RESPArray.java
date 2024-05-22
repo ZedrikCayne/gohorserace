@@ -88,6 +88,12 @@ public class RESPArray extends IRESP {
         return value;
     }
 
+    public static RESPArray RESPArrayFromCollectionOfBulkStrings(Collection<RESPBulkString> list) {
+        RESPArray returnValue = new RESPArray(list.size());
+        for( RESPBulkString sv : list ) {returnValue.addRespElement(sv);}
+        return returnValue;
+    }
+
     public RESPArray(Collection<RedisType> source, IRESP.RESPVersion version) {
         value = source.stream().map( rt -> Client.getWireType(rt,version) ).collect(Collectors.toList());
     }
@@ -149,15 +155,19 @@ public class RESPArray extends IRESP {
         return value.stream().map(Object::toString).collect(Collectors.toList());
     }
 
+    public List<RESPBulkString> toBulkStringList() {
+        return value.stream().map( x -> x.toBulkString()).collect(Collectors.toList());
+    }
+
     public RESPArray(List<IRESP> v) {
         value = v;
     }
 
     public RESPArray(RedisSet source) {
-        final Set<String> theSet = source.getSet();
+        final Set<RESPBulkString> theSet = source.getSet();
         value = new ArrayList<>(theSet.size());
-        for( String each : theSet ) {
-            value.add(new RESPBulkString(each));
+        for( var each : theSet ) {
+            value.add(each);
         }
     }
 
@@ -282,6 +292,28 @@ public class RESPArray extends IRESP {
         ArrayList<String> a = new ArrayList<>(len - index);
         for( int i = index; i < len; ++i ) {
             a.add(stringAt(i));
+        }
+        return a;
+    }
+
+    public List<RESPBulkString> bulkStringsFromIndex(int index) { return bulkStringsFromIndexLimit(index,0); }
+
+    public List<RESPBulkString> bulkStringsFromIndexLimit(int index, int limit) {
+        int len = value.size();
+        if( index >= len ) throwError();
+        if( limit != 0 ) {
+            if( limit < 0 ) {
+                limit = (len - index) + limit;
+                if( limit < 0 ) throwError();
+            }
+            if (len <= index + limit) {
+                throwError();
+            }
+            len = Math.min(len, index + limit);
+        }
+        ArrayList<RESPBulkString> a = new ArrayList<>(len - index);
+        for( int i = index; i < len; ++i ) {
+            a.add(rbsAt(i));
         }
         return a;
     }

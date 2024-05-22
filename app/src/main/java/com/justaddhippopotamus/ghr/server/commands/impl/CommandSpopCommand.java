@@ -26,7 +26,7 @@ public class CommandSpopCommand extends ICommandImplementation {
             if( hasCount )
                 item.whoFor.queue(rs.pop(count),item.order);
             else
-                item.whoFor.queue(new RESPBulkString(rs.pop()),item.order);
+                item.whoFor.queue(rs.pop(),item.order);
         }
     }
 }

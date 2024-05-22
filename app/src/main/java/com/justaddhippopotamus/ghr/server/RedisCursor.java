@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class RedisCursor {
     TypeStorage on;
@@ -84,8 +85,10 @@ public class RedisCursor {
             String key = keys.removeFirst();
             if( matches(key) ) {
                 cursorTarget.atomic((RedisSet x) -> {
-                    if( x.keys().contains(key) )
+                    if( x.keys().contains(new RESPBulkString(key)) ) {
+                        ++taken[0];
                         ra.addString(key);
+                    }
                 });
             }
         }
@@ -148,7 +151,7 @@ public class RedisCursor {
     }
 
     public RedisCursor(RedisSet target, long cursorId, String match) {
-        keys = new LinkedList<>(target.keys());
+        keys = target.keys().stream().map(RESPBulkString::toString).collect(Collectors.toCollection(LinkedList::new));
         setBasics(cursorId,match,target);
     }
 }

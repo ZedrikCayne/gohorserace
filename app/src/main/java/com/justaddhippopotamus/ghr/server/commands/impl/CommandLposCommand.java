@@ -17,8 +17,8 @@ public class CommandLposCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
         final RESPArrayScanner commands = item.scanner();
-        String key = commands.key();
-        String element = commands.key();
+        var key = commands.key();
+        var element = commands.bulkString();
         int rank = 1;
         if( commands.argIs("RANK") ) {
             rank = commands.takeInt();

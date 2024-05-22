@@ -33,7 +33,7 @@ public class CommandBlmoveCommand extends ICommandImplementation {
             }
             if( !l.isEmpty() ) {
                 RedisList destinationList = item.getMainStorage().fetchRW(destination,RedisList.class,RedisList::new);
-                item.whoFor.queue(new RESPBulkString(sourceList.move(destinationList,sourceLEFT,destinationLEFT)),item.order);
+                item.whoFor.queue(sourceList.move(destinationList,sourceLEFT,destinationLEFT),item.order);
                 Utils.setUnblocked(item,l);
             }
             Utils.setBlocking(item,l,timeout);

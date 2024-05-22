@@ -22,7 +22,7 @@ public class CommandLindexCommand extends ICommandImplementation {
         if( rl == null ) {
             item.whoFor.queueNullBulkString(item.order);
         } else {
-            item.whoFor.queue( new RESPBulkString( rl.index(index) ), item.order);
+            item.whoFor.queue( rl.index(index), item.order);
         }
     }
 }

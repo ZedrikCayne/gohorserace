@@ -17,7 +17,7 @@ public class CommandSaddCommand extends ICommandImplementation {
         //SADD key member [member ...]
         final RESPArrayScanner commands = item.scanner();
         String key = commands.key();
-        List<String> elements = commands.remainingElementsRequired(0);
+        var elements = commands.remainingBulkStringsRequired(0);
         RedisSet rs = item.getMainStorage().fetchRW(key, RedisSet.class, RedisSet::new);
         item.whoFor.queueInteger(rs.add(elements),item.order);
     }

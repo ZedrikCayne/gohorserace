@@ -15,9 +15,9 @@ import java.util.List;
 public class CommandSremCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
-        RESPArrayScanner scanner = item.scanner();
-        String key = scanner.key();
-        List<String> elements = scanner.remainingElementsRequired(0);
+        var scanner = item.scanner();
+        var key = scanner.key();
+        var elements = scanner.remainingBulkStringsRequired(0);
         RedisSet rs = item.getMainStorage().fetchRO(key,RedisSet.class);
         if( rs == null ) {
             item.whoFor.queueInteger(0,item.order);

@@ -17,9 +17,9 @@ public class CommandSmismemberCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
         //SMISMEMBER key member [member ...]
-        RESPArrayScanner commands = item.scanner();
-        String key = commands.key();
-        List<String> members = commands.remainingElementsRequired(0);
+        var commands = item.scanner();
+        var key = commands.key();
+        var members = commands.remainingBulkStringsRequired(0);
         int len = members.size();
         RedisSet set = item.getMainStorage().fetchRO(key, RedisSet.class);
         RESPArray returnValue;

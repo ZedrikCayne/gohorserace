@@ -38,7 +38,7 @@ shadowJar {
 }
 
 task generateLicense {
-    inputs.files("$projectDir/../LICENSE","$projectDir/../ThirdPartyLicenses/*")
+    inputs.files("$projectDir/../LICENSE", fileTree("$projectDir/../ThirdPartyLicenses"))
     outputs.file("$projectDir/src/main/resources/LICENSE")
     doLast {
         def outputFile = new File("$projectDir/src/main/resources/LICENSE")

@@ -20,20 +20,20 @@ public class RedisList extends RedisType {
         readFrom(is);
     }
 
-    public List<String> value() {
+    public List<RESPBulkString> value() {
         return value;
     }
     @Override
     public void writeTo(OutputStream os) throws IOException {
         os.write(prefix);
-        RESPArray ra = new RESPArray(value);
+        RESPArray ra = RESPArray.RESPArrayFromCollectionOfBulkStrings(value);
         ra.publishTo(os);
     }
 
     @Override
     public void readFrom(InputStream is) throws IOException {
         RESPArray ra = RESPArray.readFull(is);
-        value = new LinkedList<>(ra.toStringList());
+        value = new LinkedList<>(ra.toBulkStringList());
     }
 
     @Override
@@ -41,53 +41,53 @@ public class RedisList extends RedisType {
         return null;
     }
 
-    private LinkedList<String> value;
+    private LinkedList<RESPBulkString> value;
 
 
-    public synchronized int push(String s) {
+    public synchronized int push(RESPBulkString s) {
         value.addFirst(s);
         return value.size();
     }
 
-    public synchronized int push(Collection<String> s) {
-        for( String aS : s ) {
+    public synchronized int push(Collection<RESPBulkString> s) {
+        for( var aS : s ) {
             value.addFirst(aS);
         }
         return value.size();
     }
-    public synchronized int rpush(String s) {
+    public synchronized int rpush(RESPBulkString s) {
         value.addLast(s);
         return value.size();
     }
 
-    public synchronized  int rpush(Collection<String> s) {
-        for( String aS : s ) {
+    public synchronized  int rpush(Collection<RESPBulkString> s) {
+        for( var aS : s ) {
             value.addLast(aS);
         }
         return value.size();
     }
-    public synchronized String pop() {
+    public synchronized RESPBulkString pop() {
         return value.removeFirst();
     }
-    public synchronized String rpop() {
+    public synchronized RESPBulkString rpop() {
         return value.removeLast();
     }
-    public synchronized List<String> pop(int count) {
+    public synchronized List<RESPBulkString> pop(int count) {
         int toPull = Math.min(count, value.size());
         if( toPull == 0 )
             return null;
-        List<String> returnValue = new ArrayList<>(toPull);
+        List<RESPBulkString> returnValue = new ArrayList<>(toPull);
         for( int i = 0; i < toPull; ++i ) {
             returnValue.add( value.removeFirst() );
         }
         return returnValue;
     }
 
-    public synchronized List<Integer> pos(String what, int count, int maxlen, int rank ) {
+    public synchronized List<Integer> pos(RESPBulkString what, int count, int maxlen, int rank ) {
         boolean reverse = rank < 0;
         int realRank = Math.abs(rank);
         List<Integer> returnValue = new ArrayList<>();
-        Iterator<String> iter;
+        Iterator<RESPBulkString> iter;
         if( reverse ) {
             iter = value.descendingIterator();
         } else {
@@ -100,7 +100,7 @@ public class RedisList extends RedisType {
         boolean hasMaxLen = maxlen > 0;
         int len = value.size();
         while( iter.hasNext() ) {
-            String that = iter.next();
+            RESPBulkString that = iter.next();
             if( that.compareTo(what) == 0 ) {
                 ++found;
                 if( found >= realRank) {
@@ -117,11 +117,11 @@ public class RedisList extends RedisType {
         }
         return returnValue;
     }
-    public synchronized List<String> rpop(int count) {
+    public synchronized List<RESPBulkString> rpop(int count) {
         int toPull = Math.min(count, value.size());
         if( toPull == 0 )
             return null;
-        List<String> returnValue = new ArrayList<>(toPull);
+        List<RESPBulkString> returnValue = new ArrayList<>(toPull);
         for( int i = 0; i < toPull; ++i ) {
             returnValue.add( value.removeLast() );
         }
@@ -136,10 +136,10 @@ public class RedisList extends RedisType {
     public synchronized boolean isEmpty() {
         return value.isEmpty();
     }
-    public synchronized String move(RedisList destination, boolean leftFrom, boolean leftDestination ) {
+    public synchronized RESPBulkString move(RedisList destination, boolean leftFrom, boolean leftDestination ) {
         if( value.size() > 0 ) {
             synchronized( destination ) {
-                String takenFrom = leftFrom? pop():rpop();
+                RESPBulkString takenFrom = leftFrom? pop():rpop();
                 if (leftDestination) {
                     destination.push(takenFrom);
                 } else {
@@ -152,8 +152,8 @@ public class RedisList extends RedisType {
         }
     }
 
-    public synchronized String index(int index) {
-        String returnValue = null;
+    public synchronized RESPBulkString index(int index) {
+        RESPBulkString returnValue = null;
         if( Math.abs(index) < value.size() ) {
             if( index > 0 )
                 returnValue = value.get(index);
@@ -163,7 +163,7 @@ public class RedisList extends RedisType {
         return returnValue;
     }
 
-    public synchronized int insert(boolean before, String pivot, String element) {
+    public synchronized int insert(boolean before, RESPBulkString pivot, RESPBulkString element) {
         int listSize = value.size();
         for( int i = 0; i < listSize; ++i ) {
             if( value.get(i).compareTo(pivot) == 0 ) {
@@ -208,18 +208,18 @@ public class RedisList extends RedisType {
         if(realStart < 0) realStart = 0;
         if(realStop > len) realStop = len;
         if( realStart >= realStop ) return new RESPArray();
-        Iterator<String> iter = value.iterator();
+        Iterator<RESPBulkString> iter = value.iterator();
         RESPArray returnValue = new RESPArray(realStop - realStart);
         for( int i = 0; i < realStop; ++i ) {
-            String s = iter.next();
+            RESPBulkString s = iter.next();
             if( i < realStart ) continue;
-            returnValue.addString(s);
+            returnValue.addRespElement(s);
         }
         return returnValue;
         //return new ArrayList<>(value.subList(realStart,realStop));
     }
 
-    public synchronized int remove(String what, int count) {
+    public synchronized int remove(RESPBulkString what, int count) {
         List<Integer> stuffToRemove = new ArrayList<>();
         int numRemoved = 0;
         if( count == 0 ) {
@@ -233,7 +233,7 @@ public class RedisList extends RedisType {
         return numRemoved;
     }
 
-    public synchronized boolean set(String what, int index) {
+    public synchronized boolean set(RESPBulkString what, int index) {
         int len = value.size();
         int realIndex = realIndex(index,len);
         if( realIndex >= len ) return true;

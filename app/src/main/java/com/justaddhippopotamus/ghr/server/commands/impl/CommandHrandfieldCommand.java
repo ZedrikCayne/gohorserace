@@ -47,7 +47,7 @@ public class CommandHrandfieldCommand extends ICommandImplementation {
                         item.whoFor.queueNullBulkString(item.order);
                 }
                 if (hasCount)
-                    item.whoFor.queue(h.rand(count, WITHVALUES), item.order);
+                    item.whoFor.queueStrings(h.rand(count, WITHVALUES), item.order);
                 else
                     item.whoFor.queue(new RESPBulkString(h.rand(count, false).get(0)), item.order);
             });

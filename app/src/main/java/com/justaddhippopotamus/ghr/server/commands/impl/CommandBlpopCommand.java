@@ -40,9 +40,9 @@ public class CommandBlpopCommand extends ICommandImplementation {
                     RESPArray queueValue = new RESPArray(2);
                     queueValue.addString(keys.get(index));
                     if( left )
-                        queueValue.addString(l.pop());
+                        queueValue.addRespElement(l.pop());
                     else
-                        queueValue.addString(l.rpop());
+                        queueValue.addRespElement(l.rpop());
                     item.whoFor.queue(queueValue, item.order);
                     Utils.setUnblocked(item,all);
                     return false;

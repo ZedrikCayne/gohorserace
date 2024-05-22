@@ -208,9 +208,5 @@ ZSCORE
 ZUNION
 ZUNIONSTORE
 
-Couple caveats: I wasn't particularily careful about keeping 100% binary all the way through on some commands, so if you are storing stuff other than text you might get something unexpected.
-
 It doesn't send the same error messages as a real redis server. The only bits of source I actually took from the real redis repo are the json files that describe the commands, and I used that to build the implementation classes.
-There are vestigial bits in there about key parser commands (that I see why they exist now that I put in transactions, which I won't guarantee will work exactly the same as a real redis..but it is 'close enough')
 
-Good luck out there.

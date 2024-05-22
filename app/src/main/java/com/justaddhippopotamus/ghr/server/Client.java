@@ -12,6 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
+import static com.justaddhippopotamus.ghr.RESP.RESPArray.RESPArrayWithNulls;
+
 public class Client extends GoDog {
     private static class StuffToSend implements Comparable<StuffToSend> {
         public IRESP theData;
@@ -383,6 +385,10 @@ public class Client extends GoDog {
         }
     }
 
+    public void queueStrings(Collection<String> s, long order) {
+        queue(RESPArray.RESPArrayWithNulls(s,clientRESPVersion),order);
+    }
+
     public void queue(Map<String,IRESP> map,long order) {
         if( clientRESPVersion == IRESP.RESPVersion.RESP2 ) {
             queue(new RESPArray(map),order);
@@ -498,8 +504,8 @@ public class Client extends GoDog {
     public void queueDouble(double reply, long order) {queue( new RESPDouble(reply), order); }
     public void queueEmptyArray(long order) { queue(EMPTY_ARRAY,order);}
 
-    public void queue(Collection<String> set,long order) {
-        queue(new RESPArray(set),order);
+    public void queue(Collection<RESPBulkString> set,long order) {
+        queue(RESPArray.RESPArrayFromCollectionOfBulkStrings(set),order);
     }
     public TypeStorage getMainStorage() {
         return mainStorage;
