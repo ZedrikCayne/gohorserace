@@ -19,7 +19,7 @@ public class CommandSortCommand extends ICommandImplementation {
     public void runCommand(WorkItem item) {
         generic(item);
     }
-    public static void generic(WorkItem w) {
+    public static void generic(WorkItem item) {
         //SORT key [BY pattern] [LIMIT offset count] [GET pattern [GET pattern
         //  ...]] [ASC | DESC] [ALPHA] [STORE destination]
         RESPArrayScanner commands = item.scanner();
@@ -68,17 +68,17 @@ public class CommandSortCommand extends ICommandImplementation {
         }
     }
 
-    private SortableComparator<Sortable> selectComparator(String pattern, boolean alpha, boolean desc) {
+    private static SortableComparator<Sortable> selectComparator(String pattern, boolean alpha, boolean desc) {
         return (pattern==null||pattern.contains("*"))?
                 alpha?(desc?ALPHA_R:ALPHA_F):(desc?DOUBLE_R:DOUBLE_F):
                 NOSORT;
     }
 
-    private String fixRedisString(RedisString what,boolean alpha) {
+    private static String fixRedisString(RedisString what,boolean alpha) {
         if( what == null ) return null;
         else return what.toString();
     }
-    private Sortable sortableFor(TypeStorage storage, String value, Double dVal, String pattern, String elementPart, boolean alpha, SortableComparator<Sortable> comparator) {
+    private static Sortable sortableFor(TypeStorage storage, String value, Double dVal, String pattern, String elementPart, boolean alpha, SortableComparator<Sortable> comparator) {
         String keyPart = pattern==null?null:pattern.replace("*",value);
         String weightedString = null;
         if( keyPart != null ) {
@@ -102,7 +102,7 @@ public class CommandSortCommand extends ICommandImplementation {
         }
         return sv;
     }
-    private List<Sortable> makeSortables(TypeStorage storage, RedisType toConvert, String pattern, boolean alpha, SortableComparator<Sortable> comparator) {
+    private static List<Sortable> makeSortables(TypeStorage storage, RedisType toConvert, String pattern, boolean alpha, SortableComparator<Sortable> comparator) {
         boolean hasPattern = pattern != null;
         boolean hasElement = hasPattern && pattern.contains("->");
         String keyPart = hasPattern?pattern.replaceFirst(".*->",""):null;
