@@ -17,6 +17,9 @@ import java.util.regex.Matcher;
 public class CommandSortCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
+        generic(item);
+    }
+    public static void generic(WorkItem w) {
         //SORT key [BY pattern] [LIMIT offset count] [GET pattern [GET pattern
         //  ...]] [ASC | DESC] [ALPHA] [STORE destination]
         RESPArrayScanner commands = item.scanner();

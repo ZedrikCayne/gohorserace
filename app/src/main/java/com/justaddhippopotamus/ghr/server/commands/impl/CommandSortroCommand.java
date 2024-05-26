@@ -11,6 +11,6 @@ import com.justaddhippopotamus.ghr.server.WorkItem;
 public class CommandSortroCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
-        Command.BadDefaultCommandImplementation(item);
+        CommandSortCommand.generic(item);
     }
 }
