@@ -21,7 +21,7 @@ public class CommandSscanCommand extends ICommandImplementation {
         String key = commands.key();
         long cursorId = commands.takeLong();
         String pattern = commands.argIs("MATCH")?commands.string():null;
-        int count = commands.argIs("COUNT")?commands.takeInt():1;
+        int count = commands.argIs("COUNT")?commands.takeInt():10;
         RedisSet rs = null;
         if( cursorId == 0 ) {
             rs = item.getMainStorage().fetchRO(key, RedisSet.class);

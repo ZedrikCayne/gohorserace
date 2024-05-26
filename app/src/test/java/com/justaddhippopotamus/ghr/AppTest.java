@@ -9,6 +9,8 @@ import com.justaddhippopotamus.ghr.server.Server;
 import com.justaddhippopotamus.ghr.server.Utils;
 import com.justaddhippopotamus.ghr.server.commands.CommandJsonInterpreter;
 import com.justaddhippopotamus.ghr.server.commands.ServerCommands;
+import com.justaddhippopotamus.ghr.server.types.RedisGeo;
+import com.justaddhippopotamus.ghr.server.types.RedisHyperLogLog;
 import com.justaddhippopotamus.ghr.server.types.RedisString;
 import org.junit.Test;
 
@@ -198,5 +200,78 @@ public class AppTest {
         String sha1 = sha1hex(md.digest("return".getBytes(StandardCharsets.US_ASCII)));
 
         String expected = "63143b6f8007b98c53ca2149822777b3566f9241";
+    }
+
+    private String maxPrint(byte [] toPrint) {
+        StringBuilder sb = new StringBuilder();
+        sb.append('[');
+        for( int i = 0; i < toPrint.length; ++i ) {
+            if( toPrint[i] != 0 ) {
+                sb.append(i);
+                sb.append(':');
+                sb.append(Integer.toHexString(toPrint[i]&0xFF));
+                sb.append(',');
+            }
+        }
+        sb.append(']');
+        return sb.toString();
+    }
+
+    @Test
+    public void testHLL() throws Exception {
+        RedisHyperLogLog hll = new RedisHyperLogLog();
+        for( int i = 0; i < RedisHyperLogLog.HLL_REGISTERS; ++i ) {
+            hll.setRegisterDense(i, (i+1) % RedisHyperLogLog.HLL_REGISTER_MAX);
+        }
+        for( int i = 0; i < RedisHyperLogLog.HLL_REGISTERS; ++i ) {
+            hll.hllDenseSet(i, (i) % RedisHyperLogLog.HLL_REGISTER_MAX);
+        }
+        for( int i = 0; i < RedisHyperLogLog.HLL_REGISTERS; ++i ) {
+            if( (i+1)%RedisHyperLogLog.HLL_REGISTER_MAX == 0 )
+                assertTrue(hll.getRegisterDense(i)==(i)%RedisHyperLogLog.HLL_REGISTER_MAX);
+            else
+                assertTrue(hll.getRegisterDense(i)==(i+1)%RedisHyperLogLog.HLL_REGISTER_MAX);
+        }
+
+        RedisHyperLogLog hll2 = new RedisHyperLogLog();
+        List<RESPBulkString> rbsList = List.of(new RESPBulkString("a"),new RESPBulkString("b"),new RESPBulkString("c"), new RESPBulkString("d"), new RESPBulkString("e"));
+        hll2.hllAdd(rbsList);
+        assertEquals(5, hll2.hllSelfCount());
+
+        RedisHyperLogLog hll3 = new RedisHyperLogLog();
+        RedisHyperLogLog hll4 = new RedisHyperLogLog();
+        List<RESPBulkString> r1 = List.of(new RESPBulkString("0"),new RESPBulkString("1"));
+        List<RESPBulkString> r2 = List.of(new RESPBulkString("2"),new RESPBulkString("3"));
+        byte [] max = null;
+        hll3.hllAdd(r1);
+        System.out.println(hll3.toSparseString());
+        hll4.hllAdd(r2);
+        System.out.println(hll4.toSparseString());
+        max = hll3.mergeMax(max);
+        System.out.println(maxPrint(max));
+        max = hll4.mergeMax(max);
+        System.out.println(maxPrint(max));
+        RedisHyperLogLog hll5 = new RedisHyperLogLog();
+        hll5.setFromMax(max);
+        System.out.println(hll5.toSparseString());
+    }
+
+    @Test
+    public void TestGeo() throws IOException {
+        //geoadd Sicily 13.361389 38.115556 Palermo 15.087269 37.502669 Catania
+        var what = RedisGeo.geohashGetDistance(15,37, 13.361389,38.115556);
+        RedisGeo rg = new RedisGeo();
+        RedisGeo.GeoItem gi = new RedisGeo.GeoItem();
+        gi.name = "Palmero";
+        gi.longitude = 15.087269d;
+        gi.latitude = 37.502669d;
+        rg.addGeo(List.of(gi),false,false,false);
+        gi.name = "Catania";
+        gi.longitude = 13.361389d;
+        gi.latitude = 38.115556d;
+        rg.addGeo(List.of(gi),false,false,false);
+        assertEquals(166274.1516d,rg.distance("Palmero","Catania","") ,0.0001d);
+        var otherWhat = rg.find(15,37,200000);
+        System.out.println(otherWhat.size());
     }
 }

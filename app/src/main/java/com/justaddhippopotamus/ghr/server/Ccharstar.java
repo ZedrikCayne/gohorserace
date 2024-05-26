@@ -56,10 +56,44 @@ public class Ccharstar {
     public static Ccharstar getNull() {
         return new Ccharstar((byte[])null);
     }
+    public static Ccharstar on(byte [] that, int initialOffset) {
+        return new Ccharstar(that,initialOffset);
+    }
+    public int andAt(int value, int offset) {
+        return (backingBuffer[internalOffset + offset] &= (byte)value)&0xFF;
+    }
+    public int and(int value, int offset) {
+        return (backingBuffer[internalOffset + offset] & (byte)value)&0xFF;
+    }
+    public int orAt(int value, int offset) {
+        return (backingBuffer[internalOffset + offset] |= (byte)value)&0xFF;
+    }
+    public int or(int value, int offset) {
+        return (backingBuffer[internalOffset + offset] | (byte)value)&0xFF;
+    }
+    public int xorAt(int value, int offset) {
+        return (backingBuffer[internalOffset + offset] ^= (byte)value)&0xFF;
+    }
+    public int xor(int value, int offset) {
+        return (backingBuffer[internalOffset + offset] ^ (byte)value)&0xFF;
+    }
+    public int notAt(int offset) {
+        int newOffset = internalOffset + offset;
+        backingBuffer[ newOffset ] = (byte)~backingBuffer[ newOffset ];
+        return backingBuffer[ newOffset ] & 0xFF;
+    }
+    public int not(int offset) {
+        int newOffset = internalOffset + offset;
+        return (~backingBuffer[ newOffset ]) & 0xFF;
+    }
     private byte [] backingBuffer;
     private int internalOffset;
     private Ccharstar( byte [] backingBuffer ) {
         internalOffset = 0;
+        this.backingBuffer = backingBuffer;
+    }
+    private Ccharstar( byte [] backingBuffer, int initialOffset ) {
+        internalOffset = initialOffset;
         this.backingBuffer = backingBuffer;
     }
     private Ccharstar(Ccharstar other) {
@@ -100,5 +134,49 @@ public class Ccharstar {
     public void copyTo(Ccharstar out,int length) {
         System.arraycopy(backingBuffer,internalOffset,out.backingBuffer,out.internalOffset,length);
         add(length);out.add(length);
+    }
+
+    //This does not make any sense in big endian.
+    public long grabRemaining64bitLongLittleEndian() {
+        int left = left();
+        if( left >= 8 ) return grab64bitLongLittleEndian();
+        long result = 0;
+        switch(left) {
+            case 7: result = get();
+            case 6: result |= get();
+            case 5: result |= get();
+            case 4: result |= get();
+            case 3: result |= get();
+            case 2: result |= get();
+            case 1: result |= get();
+        }
+        return result;
+    }
+
+    public long grab64bitLongLittleEndian() {
+        long result = 0;
+        result = get(0);
+        result |= get(1)<<8;
+        result |= get(2)<<16;
+        result |= get(3)<<24;
+        result |= get(4)<<32;
+        result |= get(5)<<40;
+        result |= get(6)<<48;
+        result |= get(7)<<56;
+        internalOffset+=8;
+        return result;
+    }
+    public long grab64byteLongBigEndian() {
+        long result = 0;
+        result = get(7);
+        result |= get(6)<<8;
+        result |= get(5)<<16;
+        result |= get(4)<<24;
+        result |= get(3)<<32;
+        result |= get(2)<<40;
+        result |= get(1)<<48;
+        result |= get(0)<<56;
+        internalOffset+=8;
+        return result;
     }
 }

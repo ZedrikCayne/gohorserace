@@ -155,6 +155,10 @@ public class Utils {
         return matchesForGlob(input,matcher);
     }
 
+    public static String doubleToStringRedisGeoStyle(double value) {
+        return String.format(Locale.US,"%1.4f", value);
+    }
+
     public static String doubleToStringRedisStyle(double value) {
         if( value == Double.POSITIVE_INFINITY ) {
             return "+inf";

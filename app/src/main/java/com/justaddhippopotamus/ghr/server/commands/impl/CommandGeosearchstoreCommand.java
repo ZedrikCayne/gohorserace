@@ -11,6 +11,6 @@ import com.justaddhippopotamus.ghr.server.WorkItem;
 public class CommandGeosearchstoreCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
-        Command.BadDefaultCommandImplementation(item);
+        CommandGeosearchCommand.generic(item);
     }
 }

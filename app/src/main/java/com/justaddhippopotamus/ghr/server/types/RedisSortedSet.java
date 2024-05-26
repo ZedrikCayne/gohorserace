@@ -60,9 +60,9 @@ public class RedisSortedSet extends RedisType {
             return returnValue == 0 ? key.compareTo(other.key) : returnValue;
         }
     }
-    private final Map<String,SetValue> value = new HashMap<>();
-    private final TreeSet<SetValue> sortedValue = new TreeSet<>();
-    private final TreeSet<String> sortedKeys = new TreeSet<>();
+    protected final Map<String,SetValue> value = new HashMap<>();
+    protected final TreeSet<SetValue> sortedValue = new TreeSet<>();
+    protected final TreeSet<String> sortedKeys = new TreeSet<>();
 
     public final Set<SetValue> getSortedValues() { return sortedValue; }
 

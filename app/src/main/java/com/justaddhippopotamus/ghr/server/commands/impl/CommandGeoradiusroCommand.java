@@ -11,6 +11,6 @@ import com.justaddhippopotamus.ghr.server.WorkItem;
 public class CommandGeoradiusroCommand extends ICommandImplementation {
     @Override
     public void runCommand(WorkItem item) {
-        Command.BadDefaultCommandImplementation(item);
+        CommandGeoradiusCommand.generic(item);
     }
 }

@@ -25,6 +25,8 @@ public class RedisTypeFactory {
                 return new RedisHash(is);
             case RedisStream.prefix:
                 return new RedisStream(is);
+            case RedisHyperLogLog.prefix:
+                return new RedisHyperLogLog(new RedisString(is));
             case -1:
                 return null;
             default:
