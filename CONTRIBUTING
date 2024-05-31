@@ -1,0 +1,25 @@
+Pull requests welcome, but your friendly maintainer doesn't have a
+huge amount of time to deal with such things.
+
+Spelling errors in bunches of places are intentional, pull requests
+that just fix spelling and grammar in the code will be summarilly
+binned.
+
+Pearl clutching about not having proper separation between public
+and private methods, not using accessors, etc...will be merged in
+if it doesn't break anything.
+
+Bug fixes and enhancements? Come right on in! This thing works well
+enough for the use case to which it was created, but if you needed
+to add something and it works? It's welcome.
+
+All contributions should be considered under the same umbrella as the
+license file is intended. "Here, have this thing...it works, you might
+find it useful, and if you start to make a zillion dollars don't forget
+to pass some on, and for the love of god don't sue me!"
+
+If you add something that has a license add the licence to the
+ThirdPartyLicenses folder, whose contents are automatically appended
+into the output and print when you ask for the --license when starting up.
+
+Other than that, have at it.
