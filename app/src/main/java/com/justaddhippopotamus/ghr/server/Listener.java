@@ -15,6 +15,7 @@ public class Listener extends GoDog {
         while( running ) {
             try {
                 LOG.info("Starting listener on port " + portNumber + ".");
+                LOG.log("Ready to accept connections on port " + portNumber + ".");
                 mainListener = new ServerSocket(portNumber);
                 while (running) {
                     Socket clientSocket = mainListener.accept();

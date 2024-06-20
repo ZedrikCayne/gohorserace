@@ -9,7 +9,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 repositories {
@@ -34,7 +34,14 @@ application {
 
 
 shadowJar {
-    minimize()
+    //minimize()
+    mergeServiceFiles()
+    zip64 = true
+}
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_12
+    targetCompatibility = JavaVersion.VERSION_12
 }
 
 task generateLicense {
