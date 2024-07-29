@@ -25,16 +25,20 @@ public class CommandLpopCommand extends ICommandImplementation {
         }
         commands.errorOnRemains();
         RedisList xrl = item.getMainStorage().fetchRO(key, RedisList.class);
-        xrl.atomic((RedisList rl) -> {
-            if (RedisList.isNullOrEmpty(rl)) {
-                item.whoFor.queueNullArray(item.order);
-            } else {
-                if (hasCount) {
-                    item.whoFor.queue(rl.pop(count),item.order);
+        if( xrl == null ) {
+            item.whoFor.queueNullBulkString(item.order);
+        } else {
+            xrl.atomic((RedisList rl) -> {
+                if (RedisList.isNullOrEmpty(rl)) {
+                    item.whoFor.queueNullArray(item.order);
                 } else {
-                    item.whoFor.queue(rl.pop(),item.order);
+                    if (hasCount) {
+                        item.whoFor.queue(rl.pop(count), item.order);
+                    } else {
+                        item.whoFor.queue(rl.pop(), item.order);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 }
