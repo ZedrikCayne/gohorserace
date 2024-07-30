@@ -2,10 +2,8 @@ package com.justaddhippopotamus.ghr.server;
 
 import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class PubSubChannel extends GoDog {
@@ -73,11 +71,11 @@ public class PubSubChannel extends GoDog {
     }
 
     public synchronized void partOfPattern(PatternHolder ph) {
-        patterns.put(ph.pattern,ph);
+        patterns.put(ph.currentPattern,ph);
     }
 
     public synchronized void removeFromPattern(PatternHolder ph) {
-        patterns.remove(ph.pattern);
+        patterns.remove(ph.currentPattern);
     }
 
     public String getName() {return name;}

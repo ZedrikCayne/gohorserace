@@ -97,6 +97,7 @@ public class AppTest {
     }
 
 
+    @Test
     public void testGlob() throws Exception {
         Set<String> testHellos = Set.of("hello", "hallo", "hbllo", "hcllo", "heeeeello", "hcallo", "hdllo", "olleh", "Food");
         Set<String> currentResults = Utils.getMatches(testHellos,"h?llo");

@@ -1,9 +1,7 @@
 package com.justaddhippopotamus.ghr.server;
 
-import com.justaddhippopotamus.ghr.RESP.IRESP;
 import com.justaddhippopotamus.ghr.RESP.RESPArray;
 import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
-import com.justaddhippopotamus.ghr.RESP.RESPInteger;
 import com.justaddhippopotamus.ghr.server.types.RedisHash;
 import com.justaddhippopotamus.ghr.server.types.RedisSet;
 import com.justaddhippopotamus.ghr.server.types.RedisSortedSet;
@@ -13,11 +11,12 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class RedisCursor {
     TypeStorage on;
-    PathMatcher matcher;
+    Pattern pattern;
     String currentMatch;
     RedisType cursorTarget;
     LinkedList<String> keys;
@@ -26,8 +25,8 @@ public class RedisCursor {
     public long getCursorId() { return cursorId; }
 
     private boolean matches(String key) {
-        if( matcher == null ) return true;
-        return matcher.matches(Path.of(key));
+        if( pattern == null ) return true;
+        return pattern.matcher(key).matches();
     }
 
     public boolean isDone() {
@@ -120,16 +119,16 @@ public class RedisCursor {
         cursorTarget = target;
         this.cursorId = cursorId;
         currentMatch = null;
-        matcher = null;
+        pattern = null;
         resetMatcherIfNeeded(match);
     }
     private void resetMatcherIfNeeded(String newMatch) {
         if( !Objects.equals(currentMatch,newMatch) ) {
             currentMatch = newMatch;
             if( newMatch == null ) {
-                matcher = null;
+                pattern = null;
             } else {
-                matcher = Utils.forGlob(newMatch);
+                pattern = Utils.forGlob(newMatch);
             }
         }
     }

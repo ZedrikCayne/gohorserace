@@ -1,17 +1,15 @@
 package com.justaddhippopotamus.ghr.server;
 
 import com.justaddhippopotamus.ghr.RESP.RESPBulkString;
-import com.justaddhippopotamus.ghr.RESP.RESPPush;
 
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class PatternHolder {
-    String pattern;
+    String currentPattern;
     RESPBulkString bulkPattern;
-    PathMatcher matcher;
+    Pattern pattern;
     Set<Client> clients;
     Set<PubSubChannel> channels;
 
@@ -44,13 +42,13 @@ public class PatternHolder {
     }
 
     public boolean matches(String name) {
-        return matcher.matches(Paths.get(name));
+        return pattern.matcher(name).matches();
     }
 
-    public PatternHolder(String pattern) {
-        this.pattern = pattern;
-        bulkPattern = new RESPBulkString(pattern);
-        matcher = Utils.forGlob(pattern);
+    public PatternHolder(String currentPattern) {
+        this.currentPattern = currentPattern;
+        bulkPattern = new RESPBulkString(currentPattern);
+        pattern = Utils.forGlob(currentPattern);
         clients = new HashSet<>();
         channels = new HashSet<>();
     }

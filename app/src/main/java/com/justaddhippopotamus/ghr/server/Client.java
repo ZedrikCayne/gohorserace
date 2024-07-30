@@ -12,8 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
-import static com.justaddhippopotamus.ghr.RESP.RESPArray.RESPArrayWithNulls;
-
 public class Client extends GoDog {
     private static class StuffToSend implements Comparable<StuffToSend> {
         public IRESP theData;
@@ -292,16 +290,16 @@ public class Client extends GoDog {
     RESPArray RESET_COMMAND = new RESPArray("RESET");
 
     public void subscribeToPattern(PatternHolder ph) {
-        if( ph.pattern.compareTo("RESET") == 0 ) {
+        if( ph.currentPattern.compareTo("RESET") == 0 ) {
             myServer.execute(RESET_COMMAND,this,0);
         } else {
-            patternsISubscribeTo.put(ph.pattern, ph);
+            patternsISubscribeTo.put(ph.currentPattern, ph);
             ph.addClient(this);
         }
     }
 
     public void unsubscribeToPattern(PatternHolder ph ) {
-        patternsISubscribeTo.remove(ph.pattern);
+        patternsISubscribeTo.remove(ph.currentPattern);
         ph.removeClient(this);
     }
 
