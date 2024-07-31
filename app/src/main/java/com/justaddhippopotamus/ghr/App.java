@@ -87,7 +87,7 @@ public class App {
                     port = Integer.parseInt(argsList.remove(0));
                     break;
                 case "--file":
-                    dbFile = currentArg;
+                    dbFile = argsList.remove(0);
                     break;
                 case "--help":
                 case "-?":
